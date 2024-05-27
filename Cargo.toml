@@ -1,0 +1,13 @@
+[package]
+name = "kartof-play-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+choki = "1.0.3"
+reqwest = "=0.12.4"
+dojang = "0.1.6"
+visdom = "1.0.1"
+serde_json = "1.0.117"
