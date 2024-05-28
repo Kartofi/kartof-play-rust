@@ -1,9 +1,13 @@
+use dotenv::dotenv;
+
 use choki::structs::*;
 use choki::*;
 use reqwest;
 
 mod utils;
 fn main() {
+    dotenv().ok(); // Load ENV
+
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));

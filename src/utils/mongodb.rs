@@ -1,3 +1,5 @@
+use std::os::windows::thread;
+
 use mongodb::{
     bson::{doc, Regex},
     options::IndexOptions,
@@ -8,11 +10,14 @@ use serde::{Deserialize, Serialize};
 
 use super::types::Anime;
 
-pub fn connect() -> mongodb::error::Result<()> {
-    let uri = "SECRET";
+pub fn connect() -> mongodb::error::Result<Client> {
+    let mongodb_conn = std::env::var("MONGODB").expect("MONGODB must be set.");
+    let uri = &mongodb_conn;
     // Create a MongoDB client
     let client = Client::with_uri_str(uri)?;
-
+    Ok(client)
+}
+pub fn insert(anime: Anime, client: Client) -> mongodb::error::Result<()> {
     // List the names of the databases in that deployment
     let database = client.database("Kartof-Play");
 
@@ -45,6 +50,7 @@ pub fn connect() -> mongodb::error::Result<()> {
             Err(e) => eprintln!("Error: {:?}", e),
         }
     }
+
     client.shutdown();
     Ok(())
 }
