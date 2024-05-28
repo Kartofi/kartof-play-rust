@@ -2,7 +2,10 @@ use choki::structs::*;
 use choki::*;
 use reqwest;
 
+mod utils;
 fn main() {
+    utils::mongodb::connect().unwrap();
+
     let mut server = Server::new(Some(1024));
     server
         .get("/".to_string(), |mut req: Request, mut res: Response| {
@@ -10,6 +13,7 @@ fn main() {
                 .unwrap()
                 .text()
                 .unwrap();
+
             res.send_bytes(&body.as_bytes(), None);
         })
         .unwrap();
