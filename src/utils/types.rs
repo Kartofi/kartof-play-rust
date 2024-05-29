@@ -27,6 +27,8 @@ impl Anime {
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnimeDetails {
+    pub title: Option<String>,
+
     pub other_names: Vec<String>,
     pub genres: Vec<String>,
 
@@ -39,6 +41,7 @@ pub struct AnimeDetails {
 impl AnimeDetails {
     pub fn new() -> AnimeDetails {
         AnimeDetails {
+            title: None,
             other_names: Vec::new(),
             genres: Vec::new(),
             description: "".to_string(),
@@ -62,4 +65,8 @@ impl Episode {
             animegg_url: "".to_string(),
         }
     }
+}
+#[derive(Debug)]
+pub struct ScraperError {
+    pub reason: String,
 }
