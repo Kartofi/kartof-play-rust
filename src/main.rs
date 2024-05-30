@@ -9,16 +9,17 @@ use reqwest;
 mod scrapers;
 mod utils;
 
-pub static GOGOANIMEURLL: &str = "https://gogoanime3.co/";
+pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
+pub static GOGOANIMEURL_AJAX: &str =
+    "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=999999&id=";
 
 fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
     println!(
         "{} elapsed: {}",
-        scrapers::gogoanime::anime_details::get("naruto")
-            .unwrap()
-            .description,
+        scrapers::gogoanime::anime_stream::get("urusei-yatsura-2022-2nd-season-episode-20")
+            .unwrap(),
         start.elapsed().as_millis()
     );
     utils::mongodb::connect().unwrap();

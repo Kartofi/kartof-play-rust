@@ -6,7 +6,7 @@ use visdom::Vis;
 
 pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     let mut data = AnimeDetails::new();
-    let url = crate::GOGOANIMEURLL.to_owned() + "category/" + id;
+    let url = crate::GOGOANIMEURL.to_owned() + "category/" + id;
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
@@ -56,6 +56,25 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                         }
                     }
                 }
+                //Get episodes
+                let episodes: u32 = root
+                    .find("#episode_page > li")
+                    .last()
+                    .text()
+                    .trim()
+                    .split("-")
+                    .nth(1)
+                    .unwrap_or_default()
+                    .parse::<u32>()
+                    .unwrap_or(0);
+                data.episodes = episodes;
+                //Get movie id
+                let movie_id: Option<String> = root
+                    .find("input.movie_id")
+                    .first()
+                    .attr("value")
+                    .map(|att| att.to_string());
+                data.movie_id = movie_id;
             }
             Err(err) => {
                 return Err(ScraperError {
@@ -69,4 +88,26 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
         });
     }
     Ok(data)
+}
+pub fn get_episodes(movie_id: &str) -> Vec<String> {
+    let mut ids: Vec<String> = Vec::new();
+    let url = crate::GOGOANIMEURL_AJAX.to_owned() + movie_id;
+    let response = http::get(&url);
+    if response.is_none() == false {
+        match Vis::load(response.unwrap()) {
+            Ok(root) => {
+                let els = root.find("li").children("");
+
+                for ep in els {
+                    if ep.has_attribute("href") {
+                        if let Some(href) = ep.get_attribute("href") {
+                            ids.push(href.to_string().trim().to_string());
+                        }
+                    }
+                }
+            }
+            Err(_err) => {}
+        }
+    }
+    ids
 }

@@ -27,7 +27,11 @@ impl Anime {
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnimeDetails {
+    pub id: Option<String>,
     pub title: Option<String>,
+    pub released: Option<String>,
+    pub movie_id: Option<String>, // Gogoanime ajax thingy
+    pub episodes: u32,
 
     pub other_names: Vec<String>,
     pub genres: Vec<String>,
@@ -42,8 +46,12 @@ impl AnimeDetails {
     pub fn new() -> AnimeDetails {
         AnimeDetails {
             title: None,
+            id: None,
+            released: None,
             other_names: Vec::new(),
             genres: Vec::new(),
+            movie_id: None,
+            episodes: 0,
             description: "".to_string(),
             cover_url: "".to_string(),
             rating: "".to_string(),
@@ -51,16 +59,38 @@ impl AnimeDetails {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AnimeRecent {
+    pub id: Option<String>,
+    pub title: Option<String>,
+    pub episode_num: Option<String>,
+
+    pub is_sub: bool,
+
+    pub cover_url: String,
+}
+impl AnimeRecent {
+    pub fn new() -> AnimeRecent {
+        AnimeRecent {
+            title: None,
+            id: None,
+            episode_num: None,
+            is_sub: false,
+            cover_url: "".to_string(),
+        }
+    }
+}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Episode {
-    pub num: u32,
+    pub num: String,
     pub gogoanime_url: String,
     pub animegg_url: String,
 }
 impl Episode {
     pub fn new() -> Episode {
         Episode {
-            num: 0,
+            num: "".to_string(),
             gogoanime_url: "".to_string(),
             animegg_url: "".to_string(),
         }
