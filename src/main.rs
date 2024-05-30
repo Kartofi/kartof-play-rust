@@ -5,6 +5,7 @@ use dotenv::dotenv;
 use choki::structs::*;
 use choki::*;
 use reqwest;
+use utils::http;
 
 mod scrapers;
 mod utils;
@@ -16,6 +17,7 @@ pub static GOGOANIMEURL_AJAX: &str =
 fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
+
     println!(
         "{} elapsed: {}",
         scrapers::gogoanime::anime_stream::get("urusei-yatsura-2022-2nd-season-episode-20")
