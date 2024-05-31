@@ -10,6 +10,9 @@ use utils::http;
 mod scrapers;
 mod utils;
 
+//Mal
+pub static MALURL: &str = "https://myanimelist.net/";
+//Gogoanime
 pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
 pub static GOGOANIMEURL_AJAX: &str =
     "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=999999&id=";
@@ -18,12 +21,7 @@ fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    println!(
-        "{} elapsed: {}",
-        scrapers::gogoanime::anime_stream::get("urusei-yatsura-2022-2nd-season-episode-20")
-            .unwrap(),
-        start.elapsed().as_millis()
-    );
+    scrapers::mal::anime_search::get("naruto").unwrap();
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));
