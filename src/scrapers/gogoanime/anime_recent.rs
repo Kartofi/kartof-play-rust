@@ -46,6 +46,7 @@ pub fn get(page: &str) -> Result<Vec<AnimeRelease>, ScraperError> {
                     details.id = id;
                     details.episode_num = Some(ep_num);
 
+                    details.is_out = true;
                     details.is_sub = children.html().contains("ic-SUB");
 
                     data.push(details);

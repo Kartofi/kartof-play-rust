@@ -67,6 +67,7 @@ pub struct AnimeRelease {
     pub episode_num: Option<String>,
 
     pub is_sub: bool,
+    pub is_out: bool,
 
     pub cover_url: String,
     pub release_time: Option<String>,
@@ -78,6 +79,7 @@ impl AnimeRelease {
             id: None,
             episode_num: None,
             is_sub: false,
+            is_out: false,
             cover_url: "".to_string(),
             release_time: None,
         }

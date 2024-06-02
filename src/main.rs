@@ -21,7 +21,10 @@ fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    scrapers::gogoanime::anime_recent::get("1").unwrap();
+    println!(
+        "{:?}",
+        scrapers::anime_schedule::anime_schedule::get().unwrap()
+    );
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));
