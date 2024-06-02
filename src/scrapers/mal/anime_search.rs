@@ -8,7 +8,12 @@ use visdom::Vis;
 
 pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let mut data: Vec<AnimeDetails> = Vec::new();
-    let url = crate::MALURL.to_owned() + "anime.php?q=" + query + "&cat=anime";
+    let mut query = query;
+
+    if query.len() > 100 {
+        query = query.split(",").nth(1).unwrap_or_default();
+    }
+    let url = crate::MALURL.to_owned() + "anime.php?cat=anime&q=" + query;
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {

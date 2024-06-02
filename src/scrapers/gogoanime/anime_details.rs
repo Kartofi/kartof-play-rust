@@ -91,7 +91,9 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
 }
 pub fn get_episodes(movie_id: &str) -> Vec<String> {
     let mut ids: Vec<String> = Vec::new();
-    let url = crate::GOGOANIMEURL_AJAX.to_owned() + movie_id;
+    let url = crate::GOGOANIMEURL_AJAX.to_owned()
+        + "load-list-episode?ep_start=0&ep_end=999999&id="
+        + movie_id;
     let response = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {

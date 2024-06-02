@@ -61,7 +61,7 @@ impl AnimeDetails {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AnimeRecent {
+pub struct AnimeRelease {
     pub id: Option<String>,
     pub title: Option<String>,
     pub episode_num: Option<String>,
@@ -69,15 +69,17 @@ pub struct AnimeRecent {
     pub is_sub: bool,
 
     pub cover_url: String,
+    pub release_time: Option<String>,
 }
-impl AnimeRecent {
-    pub fn new() -> AnimeRecent {
-        AnimeRecent {
+impl AnimeRelease {
+    pub fn new() -> AnimeRelease {
+        AnimeRelease {
             title: None,
             id: None,
             episode_num: None,
             is_sub: false,
             cover_url: "".to_string(),
+            release_time: None,
         }
     }
 }

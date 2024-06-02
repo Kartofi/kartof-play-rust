@@ -9,19 +9,19 @@ use utils::http;
 
 mod scrapers;
 mod utils;
-
+//Anime Schedule
+pub static ANIMESCHEDULE: &str = "https://animeschedule.net/";
 //Mal
 pub static MALURL: &str = "https://myanimelist.net/";
 //Gogoanime
 pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
-pub static GOGOANIMEURL_AJAX: &str =
-    "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=999999&id=";
+pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
 fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    scrapers::mal::anime_details::get("49458").unwrap();
+    scrapers::gogoanime::anime_recent::get("1").unwrap();
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));

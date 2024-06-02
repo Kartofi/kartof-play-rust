@@ -4,16 +4,15 @@ use visdom::types::BoxDynError;
 use visdom::types::Elements;
 use visdom::Vis;
 
-pub fn get(page: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
-    let mut data: Vec<AnimeDetails> = Vec::new();
+pub fn get(page: &str) -> Result<Vec<AnimeRelease>, ScraperError> {
+    let mut data: Vec<AnimeRelease> = Vec::new();
     let url = crate::GOGOANIMEURL_AJAX.to_owned() + "page-recent-release.html?page=" + page;
     let response: Option<String> = http::get(&url);
+    println!("{}", response.clone().unwrap());
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let results = root
-                    .find("body > div.last_episodes.loaddub > ul")
-                    .children("");
+                let results = root.find("ul.items").children("");
 
                 for result in results {
                     let children = result.children();
@@ -23,7 +22,7 @@ pub fn get(page: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                         continue;
                     }
                     let image = children.find("img").attr("src").map(|att| att.to_string());
-                    let id: Option<String> = children.find("a").attr("href").map(|att| {
+                    let mut id: Option<String> = children.find("a").attr("href").map(|att| {
                         let binding = att.to_string();
                         let parts: Vec<&str> = binding.split("/").collect();
                         if parts.len() > 0 {
@@ -32,23 +31,23 @@ pub fn get(page: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                             "".to_owned()
                         }
                     });
-                    let released: String = children
-                        .find("p.released")
-                        .html()
-                        .trim()
-                        .split(" ")
-                        .nth(1)
-                        .unwrap_or_default()
-                        .to_string();
+                    let id_str = id.clone().unwrap_or_default();
 
-                    let mut details = AnimeDetails::new();
+                    let mut id_parts = id_str.split("-episode-");
+                    let mut ep_num: String = "".to_string();
+                    if id_parts.clone().count() == 2 {
+                        id = Some(id_parts.nth(0).unwrap_or_default().to_string());
+                        ep_num = id_parts.nth(1).unwrap_or_default().to_string();
+                    }
+
+                    let mut details = AnimeRelease::new();
                     details.title = title;
                     details.cover_url = image.unwrap_or_default();
                     details.id = id;
+                    details.episode_num = Some(ep_num);
 
-                    if released.len() > 0 {
-                        details.released = Some(released)
-                    }
+                    details.is_sub = children.html().contains("ic-SUB");
+
                     data.push(details);
                 }
             }
