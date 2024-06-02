@@ -21,7 +21,7 @@ fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    scrapers::mal::anime_details::get("21").unwrap();
+    scrapers::mal::anime_details::get("49458").unwrap();
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));

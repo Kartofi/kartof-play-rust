@@ -1,3 +1,4 @@
+use std::mem::replace;
 use std::u32;
 
 use crate::utils::http;
@@ -29,9 +30,67 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                         image = image_el.attr("data-src").unwrap().to_string();
                     }
                 }
+                //Description
+                let description_dirty = root
+                    .find("p[itemprop='description']")
+                    .text()
+                    .replace("\n[Written by MAL Rewrite]", "");
+                let description = description_dirty.trim();
+                //Rating
+                data.rating = root.find("span.score-label[itemprop='ratingValue']").text();
+                //Genres
+                let genres_el = root.find("span[itemprop='genre']");
+                for genre_el in genres_el {
+                    data.genres.push(genre_el.text());
+                }
+                //Titles
+                let titles_els = root
+                    .find("div.js-alternative-titles")
+                    .children("div.spaceit_pad");
+                for title_el in titles_els {
+                    data.other_names.push(
+                        title_el
+                            .text()
+                            .split(": ")
+                            .skip(1)
+                            .collect::<Vec<&str>>()
+                            .join(": ")
+                            .trim()
+                            .replace("\n", "")
+                            .to_string(),
+                    );
+                }
+                //Released
+                let released = root
+                    .find("span:contains('Premiered:')")
+                    .parent("")
+                    .text()
+                    .replace("\n          ", "")
+                    .split(":")
+                    .nth(1)
+                    .unwrap_or_default()
+                    .trim()
+                    .to_string();
+                //Episodes
+                let episodes_str = root
+                    .find("span:contains('Episodes:')")
+                    .parent("")
+                    .text()
+                    .replace("\n          ", "")
+                    .split(":")
+                    .nth(1)
+                    .unwrap_or_default()
+                    .trim()
+                    .to_string();
+
+                data.title = Some(title.to_owned());
+                data.id = Some(id.to_string());
+
+                data.description = description.to_string();
+                data.released = Some(released);
+                data.episodes = episodes_str.parse::<u32>().unwrap_or_default();
 
                 data.cover_url = image;
-                data.title = Some(title.to_owned());
             }
             Err(err) => {
                 return Err(ScraperError {
