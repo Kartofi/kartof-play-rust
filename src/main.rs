@@ -23,7 +23,8 @@ fn main() {
 
     println!(
         "{:?}",
-        scrapers::anime_schedule::anime_schedule::get().unwrap()
+        scrapers::anime_schedule::anime_details::get("tsuki-ga-michibiku-isekai-douchuu-2")
+            .unwrap()
     );
     utils::mongodb::connect().unwrap();
 

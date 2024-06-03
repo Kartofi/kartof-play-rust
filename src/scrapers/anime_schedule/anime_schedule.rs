@@ -15,7 +15,7 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let timezone = root.find("#timetable-timezone-text-mobile").text();
+                // let timezone = root.find("#timetable-timezone-text-mobile").text();
 
                 let today = root.find("#active-day").first().children("");
                 for child in today {
@@ -24,7 +24,6 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                         if class == "timetable-column-show aired expanded"
                             || class == "timetable-column-show unaired expanded"
                         {
-                            // let episode
                             let children = child.children().parent("");
 
                             let time_bar = children.find("h3.time-bar");
@@ -64,14 +63,13 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             release_data.episode_num = Some(episode);
                             release_data.id = Some(id);
                             release_data.title = Some(title);
-                            release_data.release_time = Some(time);
+                            release_data.release_time = Some(release_time.timestamp());
                             release_data.is_sub = children.html().contains("SUB</span>");
 
                             data.push(release_data);
                         }
                     }
                 }
-                println!("{}", timezone);
             }
             Err(err) => {
                 return Err(ScraperError {

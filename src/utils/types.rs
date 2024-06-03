@@ -40,7 +40,7 @@ pub struct AnimeDetails {
     pub cover_url: String,
     pub rating: String,
 
-    pub new_ep: u64,
+    pub new_ep: i64,
 }
 impl AnimeDetails {
     pub fn new() -> AnimeDetails {
@@ -70,7 +70,7 @@ pub struct AnimeRelease {
     pub is_out: bool,
 
     pub cover_url: String,
-    pub release_time: Option<String>,
+    pub release_time: Option<i64>,
 }
 impl AnimeRelease {
     pub fn new() -> AnimeRelease {
