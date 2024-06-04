@@ -11,6 +11,8 @@ mod scrapers;
 mod utils;
 //Anime Schedule
 pub static ANIMESCHEDULE: &str = "https://animeschedule.net/";
+//AnimeGG
+pub static ANIMEGG: &str = "https://www.animegg.org/";
 //Mal
 pub static MALURL: &str = "https://myanimelist.net/";
 //Gogoanime
@@ -23,8 +25,7 @@ fn main() {
 
     println!(
         "{:?}",
-        scrapers::anime_schedule::anime_details::get("tsuki-ga-michibiku-isekai-douchuu-2")
-            .unwrap()
+        scrapers::animegg::anime_search::get("naruto").unwrap()
     );
     utils::mongodb::connect().unwrap();
 
