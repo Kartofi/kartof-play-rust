@@ -23,10 +23,7 @@ fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    println!(
-        "{:?}",
-        scrapers::animegg::anime_details::get_episodes("bartender-kami-no-glass")
-    );
+    println!("{:?}", scrapers::gogoanime::anime_list::get("1"));
     utils::mongodb::connect().unwrap();
 
     let mut server = Server::new(Some(1024));
