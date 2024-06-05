@@ -25,7 +25,7 @@ fn main() {
 
     println!(
         "{:?}",
-        scrapers::animegg::anime_search::get("naruto").unwrap()
+        scrapers::animegg::anime_details::get_episodes("bartender-kami-no-glass")
     );
     utils::mongodb::connect().unwrap();
 
