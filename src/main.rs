@@ -4,6 +4,7 @@ use dotenv::dotenv;
 
 use choki::structs::*;
 use choki::*;
+use mongodb::Database;
 use reqwest;
 use utils::http;
 
@@ -24,19 +25,26 @@ fn main() {
     let start = Instant::now();
 
     println!("{:?}", scrapers::gogoanime::anime_list::get("1"));
-    utils::mongodb::connect().unwrap();
+    let mut database = utils::mongodb::Database::new().unwrap();
 
-    let mut server = Server::new(Some(1024));
+    let mut server = Server::new(Some(1024), Some(database));
+
     server
-        .get("/".to_string(), |mut req: Request, mut res: Response| {
-            let body = reqwest::blocking::get("https://www.rust-lang.org")
-                .unwrap()
-                .text()
-                .unwrap();
-
-            res.send_bytes(&body.as_bytes(), None);
-        })
+        .get(
+            "/".to_string(),
+            |mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>| {
+                let body = reqwest::blocking::get("https://www.rust-lang.org")
+                    .unwrap()
+                    .text()
+                    .unwrap();
+                println!(
+                    "{:?}",
+                    database.unwrap().search_anime("naruto", 10).unwrap().len()
+                );
+                res.send_bytes(&body.as_bytes(), None);
+            },
+        )
         .unwrap();
     server.listen(3000, None).unwrap();
-    Server::lock();
+    Server::<u8>::lock();
 }
