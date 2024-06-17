@@ -3,7 +3,7 @@ use std::os::windows::thread;
 use mongodb::{
     bson::{doc, Regex},
     options::IndexOptions,
-    sync::{Client, Collection},
+    sync::{Client, Collection, Cursor},
     IndexModel,
 };
 use serde::{Deserialize, Serialize};
@@ -53,42 +53,82 @@ impl Database {
         }
         Ok(results)
     }
-}
+    pub fn get_anime_id(&self, id: &str) -> Option<Anime> {
+        let database = self.client.database("Kartof-Play");
 
-pub fn insert(anime: Anime, client: Client) -> mongodb::error::Result<()> {
-    // List the names of the databases in that deployment
-    let database = client.database("Kartof-Play");
+        let col: Collection<Anime> = database.collection("Animes");
 
-    let col: Collection<Anime> = database.collection("Animes");
-    let cursor = col.find(doc! {"episode": "12"}, None).unwrap();
-    for result in cursor {
-        println!("title: {}", result?.title);
-    }
-    let index_model = IndexModel::builder()
-        .keys(doc! { "title": 1 }) // 1 for ascending order, -1 for descending
-        .options(IndexOptions::builder().unique(false).build())
-        .build();
+        let filter = doc! { "id": id };
 
-    // Create the index
-    col.create_index(index_model, None)?;
-
-    let mut da: Anime = Anime::new();
-    da.title = "Bleach".to_string();
-
-    //col.insert_one(da, None).unwrap();
-    let filter = doc! { "title": Regex { pattern: "naru".to_string(), options: "i".to_string() } };
-
-    // Search for Anime documents matching the filter
-    let cursor = col.find(filter, None)?;
-
-    // Iterate over the results and print each document
-    for result in cursor {
-        match result {
-            Ok(anime) => println!("{:?}", anime),
-            Err(e) => eprintln!("Error: {:?}", e),
+        // Search for Anime documents matching the filter
+        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
+        for result in cursor {
+            match result {
+                Ok(anime) => return Some(anime),
+                Err(e) => eprintln!("Error: {:?}", e),
+            }
         }
+        None
+    }
+    pub fn get_anime_mal_id(&self, id: &str) -> Option<Anime> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        let filter = doc! { "mal_id": id };
+
+        // Search for Anime documents matching the filter
+        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
+        for result in cursor {
+            match result {
+                Ok(anime) => return Some(anime),
+                Err(e) => eprintln!("Error: {:?}", e),
+            }
+        }
+        None
+    }
+    pub fn get_anime_animegg_id(&self, id: &str) -> Option<Anime> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        let filter = doc! { "animegg_id": id };
+
+        // Search for Anime documents matching the filter
+        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
+        for result in cursor {
+            match result {
+                Ok(anime) => return Some(anime),
+                Err(e) => eprintln!("Error: {:?}", e),
+            }
+        }
+        None
+    }
+    pub fn get_anime_schedule_id(&self, id: &str) -> Option<Anime> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        let filter = doc! { "schedule_id": id };
+
+        // Search for Anime documents matching the filter
+        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
+        for result in cursor {
+            match result {
+                Ok(anime) => return Some(anime),
+                Err(e) => eprintln!("Error: {:?}", e),
+            }
+        }
+        None
     }
 
-    client.shutdown();
-    Ok(())
+    pub fn insert_new_anime(&self, anime: Anime) -> mongodb::error::Result<bool> {
+        // List the names of the databases in that deployment
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        col.insert_one(anime, None).unwrap();
+        Ok(true)
+    }
 }
