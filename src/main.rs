@@ -10,6 +10,7 @@ use utils::http;
 
 mod scrapers;
 mod utils;
+mod caching;
 //Anime Schedule
 pub static ANIMESCHEDULE: &str = "https://animeschedule.net/";
 //AnimeGG
@@ -26,7 +27,7 @@ fn main() {
 
     println!("{:?}", scrapers::gogoanime::anime_list::get("1"));
     let mut database = utils::mongodb::Database::new().unwrap();
-
+   
     let mut server = Server::new(Some(1024), Some(database));
 
     server
@@ -37,6 +38,7 @@ fn main() {
                     .unwrap()
                     .text()
                     .unwrap();
+                
                 println!(
                     "{:?}",
                     database.unwrap().search_anime("naruto", 10).unwrap().len()
