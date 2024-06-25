@@ -8,9 +8,9 @@ use mongodb::Database;
 use reqwest;
 use utils::http;
 
+mod caching;
 mod scrapers;
 mod utils;
-mod caching;
 //Anime Schedule
 pub static ANIMESCHEDULE: &str = "https://animeschedule.net/";
 //AnimeGG
@@ -25,9 +25,8 @@ fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
-    println!("{:?}", scrapers::gogoanime::anime_list::get("1"));
     let mut database = utils::mongodb::Database::new().unwrap();
-   
+    database.run("tadaima-okaeri").unwrap();
     let mut server = Server::new(Some(1024), Some(database));
 
     server
@@ -38,7 +37,7 @@ fn main() {
                     .unwrap()
                     .text()
                     .unwrap();
-                
+
                 println!(
                     "{:?}",
                     database.unwrap().search_anime("naruto", 10).unwrap().len()

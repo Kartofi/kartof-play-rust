@@ -35,7 +35,7 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                 let other_names: Vec<String> = root
                 .find("html body div#wrapper_inside div#wrapper div#wrapper_bg section.content section.content_left div.main_body div.anime_info_body div.anime_info_body_bg p.type.other-name a")
                 .text().replace("Other name: ", "").split("; ").map(|item|  item.to_string()).collect();
-                if other_names.len() > 0 {
+                if other_names.len() > 0 && other_names[0].len() > 0 {
                     data.other_names = other_names;
                 }
                 //Get the genres

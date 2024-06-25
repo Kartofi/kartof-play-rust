@@ -4,9 +4,10 @@ use visdom::types::BoxDynError;
 use visdom::types::Elements;
 use visdom::Vis;
 
-pub fn get(id: &str, episode: &str) -> Result<String, ScraperError> {
+pub fn get(ep_id: &str) -> Result<String, ScraperError> {
     let mut data: String = "/error".to_string();
-    let url = crate::ANIMEGG.to_owned() + id + "-episode-" + episode;
+    let url = crate::ANIMEGG.to_owned() + ep_id;
+
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
