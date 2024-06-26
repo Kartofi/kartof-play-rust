@@ -17,13 +17,13 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let time = root
+                let time: String = root
                     .find("time[id='release-time-subs']")
                     .attr("datetime")
                     .unwrap()
                     .to_string()
                     .replace("&#43;", ":00+");
-                println!("{}", time);
+              
 
                 let datetime: DateTime<FixedOffset> = DateTime::parse_from_rfc3339(&time).unwrap();
 

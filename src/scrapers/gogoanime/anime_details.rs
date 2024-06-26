@@ -56,6 +56,7 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                         }
                     }
                 }
+
                 //Get episodes
                 let episodes: u32 = root
                     .find("#episode_page > li")

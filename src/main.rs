@@ -26,7 +26,8 @@ fn main() {
     let start = Instant::now();
 
     let mut database = utils::mongodb::Database::new().unwrap();
-    database.run("tadaima-okaeri").unwrap();
+    database.run("boukyaku-battery-tv").unwrap();
+    println!("{}", start.elapsed().as_secs());
     let mut server = Server::new(Some(1024), Some(database));
 
     server

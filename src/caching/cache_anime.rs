@@ -92,7 +92,6 @@ impl Database {
                 } else {
                     let ep_url = scrapers::animegg::anime_stream::get(&episodes_animegg[i])
                         .unwrap_or_default();
-                    println!("{}", episodes_animegg[i]);
                     ep.unwrap().animegg_url = ep_url;
                 }
             }
@@ -106,7 +105,32 @@ impl Database {
             let result_mal = mal_search[0].clone();
             anime.mal_id = result_mal.id.unwrap_or_default();
             anime.details.rating = result_mal.rating;
+
+            let details_mal = scrapers::mal::anime_details::get(&anime.mal_id);
+            if details_mal.is_ok() {
+                let data_details = details_mal.unwrap();
+                anime.details.released = data_details.released;
+                if anime.details.cover_url.len() == 0 {
+                    anime.details.cover_url = data_details.cover_url;
+                }
+                if anime.details.title.clone().unwrap_or_default().len() == 0 {
+                    anime.details.title = data_details.title.clone();
+                    anime.title = data_details.title.unwrap_or_default();
+                }
+            }
         }
+
+        //Anime Schedule
+
+        let schedule_search =
+            scrapers::anime_schedule::anime_search::get(&title).unwrap_or_default();
+        if schedule_search.len() > 0 {
+            let result_schedule = schedule_search[0].clone();
+
+            anime.details.new_ep = result_schedule.new_ep;
+            anime.schedule_id = result_schedule.id.unwrap_or_default();
+        }
+
         self.insert_new_anime(anime)
     }
 }
