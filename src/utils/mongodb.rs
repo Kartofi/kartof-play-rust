@@ -123,12 +123,39 @@ impl Database {
     }
 
     pub fn insert_new_anime(&self, anime: Anime) -> mongodb::error::Result<bool> {
-        // List the names of the databases in that deployment
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
 
         col.insert_one(anime, None).unwrap();
+        Ok(true)
+    }
+    pub fn update_anime(
+        &self,
+        id: &str,
+        details: Option<AnimeDetails>,
+        episodes: Option<Vec<Episode>>,
+    ) -> mongodb::error::Result<bool> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        let filter = doc! { "id": id };
+
+        let mut update_doc = doc! {};
+        if let Some(details) = details {
+            update_doc.insert("details", details);
+        }
+        if let Some(episodes) = episodes {
+            update_doc.insert("episodes", episodes);
+        }
+
+        if update_doc.is_empty() {
+            return Ok(false); // Nothing to update
+        }
+
+        let update = doc! { "$set": update_doc };
+        col.update_one(filter, update, None).unwrap();
         Ok(true)
     }
 }

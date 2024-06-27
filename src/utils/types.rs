@@ -11,6 +11,8 @@ pub struct Anime {
     //
     pub details: AnimeDetails,
     pub episodes: Vec<Episode>,
+    //
+    pub last_updated: i64
 }
 impl Anime {
     pub fn new() -> Anime {
@@ -22,6 +24,7 @@ impl Anime {
             schedule_id: "".to_string(),
             details: AnimeDetails::new(),
             episodes: Vec::new(),
+            last_updated:0
         }
     }
 }

@@ -130,7 +130,10 @@ impl Database {
             anime.details.new_ep = result_schedule.new_ep;
             anime.schedule_id = result_schedule.id.unwrap_or_default();
         }
-
+        anime.last_updated = utils::get_timestamp();
         self.insert_new_anime(anime)
+    }
+    fn update_existing(&self, id: &str) -> mongodb::error::Result<bool> {
+        Ok(true)
     }
 }
