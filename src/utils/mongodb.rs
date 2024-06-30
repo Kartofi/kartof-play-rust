@@ -1,7 +1,7 @@
 use std::os::windows::thread;
 
 use mongodb::{
-    bson::{doc, Regex},
+    bson::{self, doc, Regex},
     options::IndexOptions,
     sync::{Client, Collection, Cursor},
     IndexModel,
@@ -144,16 +144,23 @@ impl Database {
 
         let mut update_doc = doc! {};
         if let Some(details) = details {
-            update_doc.insert("details", details);
+            let res = bson::to_bson(&details);
+            if res.is_ok() {
+                update_doc.insert("details", res.unwrap());
+            }
         }
         if let Some(episodes) = episodes {
-            update_doc.insert("episodes", episodes);
+            let res = bson::to_bson(&episodes);
+            if res.is_ok() {
+                update_doc.insert("episodes", res.unwrap());
+            }
         }
 
         if update_doc.is_empty() {
             return Ok(false); // Nothing to update
         }
-
+        update_doc.insert("last_updated", crate::utils::get_timestamp());
+        
         let update = doc! { "$set": update_doc };
         col.update_one(filter, update, None).unwrap();
         Ok(true)

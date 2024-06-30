@@ -58,16 +58,20 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                 }
 
                 //Get episodes
-                let episodes: u32 = root
-                    .find("#episode_page > li")
-                    .last()
-                    .text()
-                    .trim()
-                    .split("-")
-                    .nth(1)
-                    .unwrap_or_default()
-                    .parse::<u32>()
-                    .unwrap_or(0);
+                let episodes_els = root.find("#episode_page > li");
+                let mut episodes: u32 = 0;
+                if episodes_els.length() > 0 {
+                    episodes = episodes_els
+                        .last()
+                        .text()
+                        .trim()
+                        .split("-")
+                        .nth(1)
+                        .unwrap_or_default()
+                        .parse::<u32>()
+                        .unwrap_or(0);
+                }
+
                 data.episodes = episodes;
                 //Get movie id
                 let movie_id: Option<String> = root

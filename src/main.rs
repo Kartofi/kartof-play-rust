@@ -26,7 +26,8 @@ fn main() {
     let start = Instant::now();
 
     let mut database = utils::mongodb::Database::new().unwrap();
-    database.run("isekai-suicide-squad").unwrap();
+    database.cache_anime("naruto-shippuden").unwrap();
+    database.cache_anime("kaijuu-8-gou").unwrap();
     println!("{}", start.elapsed().as_secs());
     let mut server = Server::new(Some(1024), Some(database));
 
