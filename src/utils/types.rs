@@ -12,7 +12,7 @@ pub struct Anime {
     pub details: AnimeDetails,
     pub episodes: Vec<Episode>,
     //
-    pub last_updated: i64
+    pub last_updated: i64,
 }
 impl Anime {
     pub fn new() -> Anime {
@@ -24,11 +24,11 @@ impl Anime {
             schedule_id: "".to_string(),
             details: AnimeDetails::new(),
             episodes: Vec::new(),
-            last_updated:0
+            last_updated: 0,
         }
     }
 }
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnimeDetails {
     pub id: Option<String>,
     pub title: Option<String>,
@@ -63,7 +63,7 @@ impl AnimeDetails {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnimeRelease {
     pub id: Option<String>,
     pub title: Option<String>,
@@ -88,7 +88,7 @@ impl AnimeRelease {
         }
     }
 }
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Episode {
     pub num: String,
     pub gogoanime_url: String,
@@ -106,4 +106,17 @@ impl Episode {
 #[derive(Debug)]
 pub struct ScraperError {
     pub reason: String,
+}
+#[derive(Debug)]
+pub struct CacheResult {
+    pub reason: String,
+    pub is_error: bool,
+}
+impl CacheResult {
+    pub fn new(reason: &str, error: bool) -> CacheResult {
+        CacheResult {
+            reason: reason.to_string(),
+            is_error: error,
+        }
+    }
 }

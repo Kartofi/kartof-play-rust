@@ -6,6 +6,7 @@ use choki::structs::*;
 use choki::*;
 use mongodb::Database;
 use reqwest;
+use threadpool::ThreadPool;
 use utils::http;
 
 mod caching;
@@ -21,13 +22,21 @@ pub static MALURL: &str = "https://myanimelist.net/";
 pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
 pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
+pub static CACHE_ANIME_COUNTDOWN: i64 = 300; // 5 MINS
 fn main() {
     dotenv().ok(); // Load ENV
     let start = Instant::now();
 
     let mut database = utils::mongodb::Database::new().unwrap();
-    database.cache_anime("naruto-shippuden").unwrap();
-    database.cache_anime("kaijuu-8-gou").unwrap();
+
+    let po = ThreadPool::new(3);
+    let clone = database.clone();
+    let clone2 = database.clone();
+    po.execute(move || {
+        clone.cache_anime("isekai-suicide-squad").unwrap();
+    });
+
+    po.join();
     println!("{}", start.elapsed().as_secs());
     let mut server = Server::new(Some(1024), Some(database));
 

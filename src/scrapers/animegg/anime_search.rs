@@ -31,6 +31,17 @@ pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                         details.cover_url = image_el.attr("src").unwrap().to_string();
                     }
                     details.title = Some(children.find("h2").text());
+                    let episodes_el = children.find("div").children("").find("div");
+                    if episodes_el.is_empty() == false {
+                        let ep_str = episodes_el.first().text().replace("Episodes: ", "");
+                      
+                        match ep_str.parse::<u32>() {
+                            Ok(episodes) => {
+                                details.episodes = episodes;
+                            }
+                            Err(e) => {}
+                        }
+                    }
 
                     data.push(details);
                 }

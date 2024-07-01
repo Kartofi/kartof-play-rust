@@ -122,20 +122,20 @@ impl Database {
         None
     }
 
-    pub fn insert_new_anime(&self, anime: Anime) -> mongodb::error::Result<bool> {
+    pub fn insert_new_anime(&self, anime: Anime) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
 
         col.insert_one(anime, None).unwrap();
-        Ok(true)
+        Ok(CacheResult::new("No errors", false))
     }
     pub fn update_anime(
         &self,
         id: &str,
         details: Option<AnimeDetails>,
         episodes: Option<Vec<Episode>>,
-    ) -> mongodb::error::Result<bool> {
+    ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
@@ -156,13 +156,10 @@ impl Database {
             }
         }
 
-        if update_doc.is_empty() {
-            return Ok(false); // Nothing to update
-        }
         update_doc.insert("last_updated", crate::utils::get_timestamp());
-        
+
         let update = doc! { "$set": update_doc };
         col.update_one(filter, update, None).unwrap();
-        Ok(true)
+        Ok(CacheResult::new("No errors", false))
     }
 }
