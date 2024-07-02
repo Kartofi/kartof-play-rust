@@ -33,7 +33,11 @@ fn main() {
     let clone = database.clone();
     let clone2 = database.clone();
     po.execute(move || {
-        clone.cache_anime("isekai-suicide-squad").unwrap();
+        clone
+            .cache_anime(
+                "shinmai-ossan-boukensha-saikyou-party-ni-shinu-hodo-kitaerarete-muteki-ni-naru",
+            )
+            .unwrap();
     });
 
     po.join();

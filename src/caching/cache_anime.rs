@@ -198,55 +198,66 @@ impl Database {
             let ep_num = episode.num.clone();
 
             pool.execute(move || {
-                let pool = ThreadPool::new(2);
+                if episode.gogoanime_url.len() <= 6 {
+                    let result = scrapers::gogoanime::anime_stream::get(
+                        &(gogo_id + "-episode-" + &episode.num),
+                    );
 
-                let gogoanime_url = Arc::new(Mutex::new("".to_string()));
-                let animegg_url = Arc::new(Mutex::new("".to_string()));
-
-                let gogourl_clone = gogoanime_url.clone();
-                let animeggurl_clone = animegg_url.clone();
-
-                if episode.gogoanime_url.len() == 6 {
-                    pool.execute(move || {
-                        let result = scrapers::gogoanime::anime_stream::get(
-                            &(gogo_id + "-episode-" + &episode.num),
-                        );
-
-                        let url = result.unwrap_or_default();
-                        if url.len() > 6 {
-                            let mut locked = gogourl_clone.lock().unwrap();
-
-                            *locked = url;
-                        }
-                    });
+                    let url = result.unwrap_or_default();
+                    if url.len() > 6 {
+                        episode.gogoanime_url = url;
+                    }
                 }
-                if episode.animegg_url.len() == 6 {
-                    pool.execute(move || {
-                        let result = scrapers::animegg::anime_stream::get(
-                            &(animegg_id + "-episode-" + &ep_num),
-                        );
+                if episode.animegg_url.len() <= 6 {
+                    let result =
+                        scrapers::animegg::anime_stream::get(&(animegg_id + "-episode-" + &ep_num));
 
-                        let url = result.unwrap_or_default();
-                        if url.len() > 6 {
-                            let mut locked = animeggurl_clone.lock().unwrap();
-
-                            *locked = url;
-                        }
-                    });
+                    let url = result.unwrap_or_default();
+                    if url.len() > 6 {
+                        episode.animegg_url = url;
+                    }
                 }
-
-                pool.join();
-
-                episode.animegg_url = animegg_url.lock().unwrap().to_string();
-                episode.gogoanime_url = gogoanime_url.lock().unwrap().to_string();
             });
         }
         pool.join();
         if current.details.episodes < details.episodes {
-            //check for error
+            let mut ep_list_gogo = scrapers::gogoanime::anime_details::get_episodes(
+                &details.movie_id.unwrap_or_default(),
+            );
+            let mut ep_list_animegg =
+                scrapers::animegg::anime_details::get_episodes(&&current.animegg_id);
+
+            let missing_eps = (details.episodes - current.details.episodes) as usize;
+
+            if missing_eps < ep_list_gogo.len() {
+                ep_list_gogo.splice(
+                    0..(ep_list_gogo.len() - 1 - missing_eps),
+                    std::iter::empty(),
+                );
+            }
+            if missing_eps < ep_list_animegg.len() {
+                ep_list_animegg.splice(
+                    0..(ep_list_animegg.len() - 1 - missing_eps),
+                    std::iter::empty(),
+                );
+            }
+            let pool = ThreadPool::new(missing_eps);
+
+            if ep_list_gogo.len() > ep_list_gogo.len() {
+                for i in 0..ep_list_gogo.len() - 1 {
+                    pool.execute(move || {
+                        let gogo_url = scrapers::gogoanime::anime_stream::get(&ep_list_gogo[i])
+                            .unwrap_or_default();
+                        if ep_list_animegg.len() > i {
+                        } else {
+                        }
+                    });
+                }
+            } else {
+                for i in 0..ep_list_animegg.len() - 1 {}
+            }
+            pool.join();
             //add new
-        } else {
-            //check for /error
         }
         Ok(CacheResult::new("", false))
     }
