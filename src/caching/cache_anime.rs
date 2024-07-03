@@ -243,14 +243,27 @@ impl Database {
             }
             let pool = ThreadPool::new(missing_eps);
 
+            let episodes_mt: Arc<Mutex<Vec<Episode>>> = Arc::new(Mutex::new(Vec::new()));
             if ep_list_gogo.len() > ep_list_gogo.len() {
                 for i in 0..ep_list_gogo.len() - 1 {
+                    let ep_gogo = ep_list_gogo[i].clone();
+                    let ep_anime = ep_list_animegg[i].clone();
+                    let animegg_len = ep_list_animegg.len();
+
                     pool.execute(move || {
-                        let gogo_url = scrapers::gogoanime::anime_stream::get(&ep_list_gogo[i])
-                            .unwrap_or_default();
-                        if ep_list_animegg.len() > i {
-                        } else {
+                        let gogo_url =
+                            scrapers::gogoanime::anime_stream::get(&ep_gogo).unwrap_or_default();
+                        let mut animegg_url = "".to_string();
+                        if animegg_len > i {
+                            animegg_url =
+                                scrapers::animegg::anime_stream::get(&ep_anime).unwrap_or_default()
                         }
+
+                        let mut ep = Episode::new();
+                        ep.animegg_url = animegg_url;
+                        ep.gogoanime_url = gogo_url;
+                        episodes_mt.lock().unwrap().push(ep);
+                        //episodes.push(ep);
                     });
                 }
             } else {
