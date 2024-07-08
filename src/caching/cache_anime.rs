@@ -94,13 +94,17 @@ impl Database {
 
             let mut episodes_animegg =
                 scrapers::animegg::anime_details::get_episodes(&anime.animegg_id);
-            episodes_animegg.reverse();
+
             let mut thread_count = episodes_animegg.len();
             if thread_count == 0 {
                 thread_count = 1;
             }
             let pool = ThreadPool::new(thread_count);
 
+            episodes
+                .lock()
+                .unwrap()
+                .sort_by(|a, b| compare(&a.num, &b.num));
             for i in 0..episodes_animegg.len() {
                 let clone = episodes.clone();
                 let episodes_animegg = episodes_animegg.clone();
@@ -230,26 +234,28 @@ impl Database {
             let missing_eps = (details.episodes - current.details.episodes) as usize;
 
             if missing_eps < ep_list_gogo.len() {
-                ep_list_gogo.splice(
-                    0..(ep_list_gogo.len() - 1 - missing_eps),
-                    std::iter::empty(),
-                );
+                ep_list_gogo.splice(0..(ep_list_gogo.len() - missing_eps), std::iter::empty());
             }
             if missing_eps < ep_list_animegg.len() {
-                ep_list_animegg.splice(
-                    0..(ep_list_animegg.len() - 1 - missing_eps),
-                    std::iter::empty(),
-                );
+                ep_list_animegg
+                    .splice(0..(ep_list_animegg.len() - missing_eps), std::iter::empty());
             }
+            println!("{:?}", ep_list_gogo);
             let pool = ThreadPool::new(missing_eps);
 
             let episodes_mt: Arc<Mutex<Vec<Episode>>> = Arc::new(Mutex::new(Vec::new()));
-            if ep_list_gogo.len() > ep_list_gogo.len() {
-                for i in 0..ep_list_gogo.len() - 1 {
+            if ep_list_gogo.len() >= ep_list_animegg.len() {
+                let end_iter = if ep_list_gogo.len() == 1 {
+                    1
+                } else {
+                    ep_list_gogo.len() - 1
+                };
+                for i in 0..end_iter {
                     let ep_gogo = ep_list_gogo[i].clone();
-                    let ep_anime = ep_list_animegg[i].clone();
+                    let ep_anime = ep_list_animegg.get(i).unwrap_or(&"".to_string()).clone();
                     let animegg_len = ep_list_animegg.len();
 
+                    let cl = Arc::clone(&episodes_mt);
                     pool.execute(move || {
                         let gogo_url =
                             scrapers::gogoanime::anime_stream::get(&ep_gogo).unwrap_or_default();
@@ -262,14 +268,19 @@ impl Database {
                         let mut ep = Episode::new();
                         ep.animegg_url = animegg_url;
                         ep.gogoanime_url = gogo_url;
-                        episodes_mt.lock().unwrap().push(ep);
+                        cl.lock().unwrap().push(ep);
+
                         //episodes.push(ep);
                     });
+                    if ep_list_gogo.len() == 1 {
+                        break;
+                    }
                 }
             } else {
                 for i in 0..ep_list_animegg.len() - 1 {}
             }
             pool.join();
+            println!("{}", episodes_mt.lock().unwrap().len());
             //add new
         }
         Ok(CacheResult::new("", false))
@@ -286,7 +297,7 @@ fn cache_episodes_gogo(movie_id: &str) -> Vec<Episode> {
     let mut episodes: Vec<Episode> = Vec::new();
 
     let mut episodes_gogoanime = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
-    episodes_gogoanime.reverse();
+
     let mut thread_count = episodes_gogoanime.len();
 
     if thread_count == 0 {

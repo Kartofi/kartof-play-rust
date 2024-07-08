@@ -73,5 +73,6 @@ pub fn get_episodes(id: &str) -> Vec<String> {
             Err(_err) => {}
         }
     }
+    ids.reverse();
     ids
 }

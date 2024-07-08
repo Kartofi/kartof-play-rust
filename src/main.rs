@@ -33,15 +33,11 @@ fn main() {
     let clone = database.clone();
     let clone2 = database.clone();
     po.execute(move || {
-        clone
-            .cache_anime(
-                "shinmai-ossan-boukensha-saikyou-party-ni-shinu-hodo-kitaerarete-muteki-ni-naru",
-            )
-            .unwrap();
+        clone.cache_anime("kaijuu-8-gou").unwrap();
     });
 
     po.join();
-    println!("{}", start.elapsed().as_secs());
+
     let mut server = Server::new(Some(1024), Some(database));
 
     server

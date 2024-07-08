@@ -17,17 +17,16 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let time: String = root
-                    .find("time[id='release-time-subs']")
-                    .attr("datetime")
-                    .unwrap()
-                    .to_string()
-                    .replace("&#43;", ":00+");
-              
+                let time_res = root.find("time[id='release-time-subs']").attr("datetime");
+                let mut timestamp: i64 = 0;
 
-                let datetime: DateTime<FixedOffset> = DateTime::parse_from_rfc3339(&time).unwrap();
-
-                let timestamp = datetime.timestamp();
+                if time_res.is_none() == false {
+                    let datetime: DateTime<FixedOffset> = DateTime::parse_from_rfc3339(
+                        &time_res.unwrap().to_string().replace("&#43;", ":00+"),
+                    )
+                    .unwrap();
+                    timestamp = datetime.timestamp();
+                }
 
                 //let time_zone = root.find("div.release-time-timezone-text").text();
                 let title = root.find("#anime-header-main-title").text();
