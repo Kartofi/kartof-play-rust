@@ -33,7 +33,7 @@ fn main() {
     let clone = database.clone();
     let clone2 = database.clone();
     po.execute(move || {
-        clone.cache_anime("kaijuu-8-gou").unwrap();
+        println!("{:?}", clone.cache_anime("kaijuu-8-gou").unwrap());
     });
 
     po.join();

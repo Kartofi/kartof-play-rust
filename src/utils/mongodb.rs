@@ -149,6 +149,7 @@ impl Database {
                 update_doc.insert("details", res.unwrap());
             }
         }
+
         if let Some(episodes) = episodes {
             let res = bson::to_bson(&episodes);
             if res.is_ok() {
