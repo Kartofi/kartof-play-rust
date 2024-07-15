@@ -29,14 +29,22 @@ fn main() {
 
     let mut database = utils::mongodb::Database::new().unwrap();
 
-    let po = ThreadPool::new(3);
-    let clone = database.clone();
-    let clone2 = database.clone();
-    po.execute(move || {
-        println!("{:?}", clone.cache_anime("kaijuu-8-gou").unwrap());
-    });
+    let po = ThreadPool::new(100);
 
-    po.join();
+    for i in 1..99 {
+        let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
+        println!("Started page {}", i);
+        for anime in page1 {
+            let clone = database.clone();
+
+            po.execute(move || {
+                println!("Started - {}", anime);
+                clone.cache_anime(&anime).unwrap();
+                println!("Done - {}", anime);
+            });
+        }
+        po.join();
+    }
 
     let mut server = Server::new(Some(1024), Some(database));
 

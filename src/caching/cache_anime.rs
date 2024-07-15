@@ -292,21 +292,55 @@ impl Database {
                         ep.gogoanime_url = gogo_url;
                         cl.lock().unwrap().push(ep);
                     });
-                    if ep_list_gogo.len() == 1 {
+                    if end_iter == 1 {
                         break;
                     }
                 }
             } else {
-                for i in 0..ep_list_animegg.len() - 1 {}
+                let end_iter = if ep_list_animegg.len() == 1 {
+                    1
+                } else {
+                    ep_list_animegg.len() - 1
+                };
+                for i in 0..end_iter {
+                    let ep_animegg = ep_list_animegg[i].clone();
+                    let ep_gogo = ep_list_animegg.get(i).unwrap_or(&"".to_string()).clone();
+                    let gogo_len = ep_list_gogo.len();
+
+                    let cl = Arc::clone(&episodes_new_mt);
+                    pool.execute(move || {
+                        let animegg_url =
+                            scrapers::animegg::anime_stream::get(&ep_animegg).unwrap_or_default();
+                        let mut gogo_url = "".to_string();
+                        if gogo_len > i {
+                            gogo_url =
+                                scrapers::gogoanime::anime_stream::get(&ep_gogo).unwrap_or_default()
+                        }
+
+                        let mut ep = Episode::new();
+                        ep.num = ep_animegg
+                            .split("-episode-")
+                            .last()
+                            .unwrap_or_default()
+                            .to_string();
+                        ep.animegg_url = animegg_url;
+                        ep.gogoanime_url = gogo_url;
+                        cl.lock().unwrap().push(ep);
+                    });
+
+                    if end_iter == 1 {
+                        break;
+                    }
+                }
             }
             pool.join();
             let mut eps = episodes_mt.lock().unwrap().to_vec();
-            let mut new_eps = episodes_new_mt.lock().unwrap().to_vec();
+            let new_eps = episodes_new_mt.lock().unwrap().to_vec();
 
             eps.extend(new_eps);
             self.update_anime(id, Some(details_clone), Some(eps))
         } else {
-            let mut eps = episodes_mt.lock().unwrap().to_vec();
+            let eps = episodes_mt.lock().unwrap().to_vec();
             self.update_anime(id, Some(details_clone), Some(eps))
         }
     }
