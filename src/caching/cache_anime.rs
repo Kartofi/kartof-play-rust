@@ -178,6 +178,13 @@ impl Database {
         let mut details = current.details.clone();
         let mut episodes = current.episodes.clone();
 
+
+        if current.mal_id.len() == 0 {
+
+        }
+if current.schedule_id.len() == 0 {
+
+}
         if current.mal_id.len() > 0 {
             let mal_data = scrapers::mal::anime_details::get(&current.mal_id);
             if mal_data.is_ok() {
