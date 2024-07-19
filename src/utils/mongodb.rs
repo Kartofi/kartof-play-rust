@@ -135,6 +135,9 @@ impl Database {
         id: &str,
         details: Option<AnimeDetails>,
         episodes: Option<Vec<Episode>>,
+        animegg_id: Option<&str>,
+        mal_id: Option<&str>,
+        schedule_id: Option<&str>,
     ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
@@ -156,7 +159,15 @@ impl Database {
                 update_doc.insert("episodes", res.unwrap());
             }
         }
-
+        if let Some(animegg_id) = animegg_id {
+            update_doc.insert("animegg_id", animegg_id);
+        }
+        if let Some(mal_id) = mal_id {
+            update_doc.insert("mal_id", mal_id);
+        }
+        if let Some(schedule_id) = schedule_id {
+            update_doc.insert("schedule_id", schedule_id);
+        }
         update_doc.insert("last_updated", crate::utils::get_timestamp());
 
         let update = doc! { "$set": update_doc };
