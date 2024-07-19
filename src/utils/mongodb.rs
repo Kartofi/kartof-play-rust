@@ -53,12 +53,28 @@ impl Database {
         }
         Ok(results)
     }
-    pub fn get_anime_id(&self, id: &str) -> Option<Anime> {
+    pub fn get_anime_id(&self, id: &str, id_type: IdType) -> Option<Anime> {
+        if id_type == IdType::KartofPlay {
+            self.get_anime(id, "id")
+        } else if id_type == IdType::AnimeGG {
+            self.get_anime(id, "animegg_id")
+        } else if id_type == IdType::Gogoanime {
+            self.get_anime(id, "gogo_id")
+        } else if id_type == IdType::AnimeSchedule {
+            self.get_anime(id, "schedule_id")
+        } else if id_type == IdType::MAL {
+            self.get_anime(id, "mal_id")
+        } else {
+            None
+        }
+    }
+
+    fn get_anime(&self, id: &str, name_id: &str) -> Option<Anime> {
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
 
-        let filter = doc! { "id": id };
+        let filter = doc! {name_id: id };
 
         // Search for Anime documents matching the filter
         let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
@@ -70,58 +86,6 @@ impl Database {
         }
         None
     }
-    pub fn get_anime_mal_id(&self, id: &str) -> Option<Anime> {
-        let database = self.client.database("Kartof-Play");
-
-        let col: Collection<Anime> = database.collection("Animes");
-
-        let filter = doc! { "mal_id": id };
-
-        // Search for Anime documents matching the filter
-        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
-        for result in cursor {
-            match result {
-                Ok(anime) => return Some(anime),
-                Err(e) => eprintln!("Error: {:?}", e),
-            }
-        }
-        None
-    }
-    pub fn get_anime_animegg_id(&self, id: &str) -> Option<Anime> {
-        let database = self.client.database("Kartof-Play");
-
-        let col: Collection<Anime> = database.collection("Animes");
-
-        let filter = doc! { "animegg_id": id };
-
-        // Search for Anime documents matching the filter
-        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
-        for result in cursor {
-            match result {
-                Ok(anime) => return Some(anime),
-                Err(e) => eprintln!("Error: {:?}", e),
-            }
-        }
-        None
-    }
-    pub fn get_anime_schedule_id(&self, id: &str) -> Option<Anime> {
-        let database = self.client.database("Kartof-Play");
-
-        let col: Collection<Anime> = database.collection("Animes");
-
-        let filter = doc! { "schedule_id": id };
-
-        // Search for Anime documents matching the filter
-        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
-        for result in cursor {
-            match result {
-                Ok(anime) => return Some(anime),
-                Err(e) => eprintln!("Error: {:?}", e),
-            }
-        }
-        None
-    }
-
     pub fn insert_new_anime(&self, anime: Anime) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 

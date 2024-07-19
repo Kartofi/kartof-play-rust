@@ -6,7 +6,8 @@ use visdom::Vis;
 
 pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let mut data: Vec<AnimeDetails> = Vec::new();
-    let url = crate::ANIMEGG.to_owned() + "search/?q=" + &query.replace(" ","+");
+    let url = crate::ANIMEGG.to_owned() + "search/?q=" + &query.trim().replace(" ", "+");
+
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
@@ -34,7 +35,7 @@ pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                     let episodes_el = children.find("div").children("").find("div");
                     if episodes_el.is_empty() == false {
                         let ep_str = episodes_el.first().text().replace("Episodes: ", "");
-                      
+
                         match ep_str.parse::<u32>() {
                             Ok(episodes) => {
                                 details.episodes = episodes;

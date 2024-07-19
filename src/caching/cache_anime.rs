@@ -23,8 +23,8 @@ use crate::scrapers;
 use crate::utils;
 
 impl Database {
-    pub fn cache_anime(&self, id: &str) -> mongodb::error::Result<CacheResult> {
-        let found = self.get_anime_id(id);
+    pub fn cache_anime(&self, id: &str, id_type: IdType) -> mongodb::error::Result<CacheResult> {
+        let found = self.get_anime_id(id, id_type);
         if found.is_none() {
             self.create_new(id)
         } else {
@@ -36,19 +36,21 @@ impl Database {
             }
         }
     }
-    fn create_new(&self, id: &str) -> mongodb::error::Result<CacheResult> {
+    fn create_new(&self, gogo_id: &str) -> mongodb::error::Result<CacheResult> {
         let mut anime = Anime::new();
 
-        let gogoanime_data_result = scrapers::gogoanime::anime_details::get(id);
+        let gogoanime_data_result = scrapers::gogoanime::anime_details::get(gogo_id);
         if gogoanime_data_result.is_err() {
             return Ok(CacheResult::new("Invalid id!", true));
         }
         let gogoanime_details = gogoanime_data_result.unwrap();
 
-        anime.id = id.to_string();
+        anime.id = utils::generate_id().to_string();
+
+        anime.gogo_id = gogo_id.to_string();
 
         anime.details = gogoanime_details.clone();
-        anime.details.id = Some(id.to_string());
+        anime.details.id = Some(gogo_id.to_string());
 
         anime.title = gogoanime_details.title.unwrap_or_default();
 
@@ -63,18 +65,20 @@ impl Database {
 
         //Search animeGG and get id
         let animegg_search = scrapers::animegg::anime_search::get(&title).unwrap_or_default();
+
         if animegg_search.len() > 0 {
             let mut result_anime = AnimeDetails::new();
-
+            let mut found = false;
             for anime_res in animegg_search {
                 if anime_res.episodes.abs_diff(anime.details.episodes) < anime.details.episodes / 2
                 {
+                    found = true;
                     result_anime = anime_res;
                     break;
                 }
             }
 
-            if result_anime.episodes.abs_diff(anime.details.episodes) < anime.details.episodes / 2 {
+            if found == true {
                 anime.animegg_id = result_anime.id.unwrap_or_default();
 
                 if anime.details.other_names.len() == 0 {
@@ -221,7 +225,7 @@ impl Database {
             }
         }
         //Episodes
-        let gogoanime_details_res = scrapers::gogoanime::anime_details::get(id);
+        let gogoanime_details_res = scrapers::gogoanime::anime_details::get(&current.gogo_id);
         if gogoanime_details_res.is_ok() {
             let details_gogo = gogoanime_details_res.unwrap();
             details.episodes = details_gogo.episodes;
@@ -237,7 +241,7 @@ impl Database {
             pool.max_count() - 2
         };
         for i in 0..end_iter_eps {
-            let gogo_id = id.to_owned();
+            let gogo_id = current.gogo_id.to_owned();
             let animegg_id = current.animegg_id.clone();
 
             let arc_clone = Arc::clone(&episodes_mt);

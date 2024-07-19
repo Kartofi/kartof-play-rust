@@ -5,6 +5,8 @@ pub struct Anime {
     pub title: String,
     //Ids
     pub id: String,
+
+    pub gogo_id: String,
     pub animegg_id: String,
     pub mal_id: String,
     pub schedule_id: String,
@@ -19,6 +21,7 @@ impl Anime {
         Anime {
             title: "".to_string(),
             id: "".to_string(),
+            gogo_id: "".to_string(),
             animegg_id: "".to_string(),
             mal_id: "".to_string(),
             schedule_id: "".to_string(),
@@ -119,4 +122,12 @@ impl CacheResult {
             is_error: error,
         }
     }
+}
+#[derive(PartialEq)]
+pub enum IdType {
+    KartofPlay,
+    Gogoanime,
+    AnimeGG,
+    AnimeSchedule,
+    MAL,
 }

@@ -1182,6 +1182,7 @@ dependencies = [
  "dojang",
  "dotenv",
  "mongodb",
+ "rand",
  "reqwest",
  "serde",
  "threadpool",

@@ -8,6 +8,7 @@ use mongodb::Database;
 use reqwest;
 use threadpool::ThreadPool;
 use utils::http;
+use utils::types::IdType;
 
 mod caching;
 mod scrapers;
@@ -30,8 +31,10 @@ fn main() {
     let mut database = utils::mongodb::Database::new().unwrap();
 
     let po = ThreadPool::new(100);
-
-    for i in 1..99 {
+    database
+        .cache_anime("a-channel-special-", IdType::Gogoanime)
+        .unwrap();
+    for i in 0..0 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {
@@ -39,7 +42,7 @@ fn main() {
 
             po.execute(move || {
                 println!("Started - {}", anime);
-                clone.cache_anime(&anime).unwrap();
+                clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
                 println!("Done - {}", anime);
             });
         }
