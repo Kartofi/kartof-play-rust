@@ -11,7 +11,7 @@ use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let mut data: Vec<AnimeDetails> = Vec::new();
-    let url = crate::ANIMESCHEDULE.to_owned() + "shows?mt=all&st=search&q=" + query;
+    let url = crate::ANIMESCHEDULE.to_owned() + "shows?mt=all&st=search&q=" + &query.replace(" ","+");
     let response: Option<String> = http::get(&url);
 
     if response.is_none() == false {
