@@ -3,6 +3,7 @@ use crate::utils::types::*;
 use chrono::DurationRound;
 use chrono::FixedOffset;
 use mongodb::results;
+use urlencoding::encode;
 use visdom::types::BoxDynError;
 use visdom::types::Elements;
 use visdom::Vis;
@@ -11,9 +12,7 @@ use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let mut data: Vec<AnimeDetails> = Vec::new();
-    let url = crate::ANIMESCHEDULE.to_owned()
-        + "shows?mt=all&st=search&q="
-        + &query.trim().replace(" ", "+");
+    let url = crate::ANIMESCHEDULE.to_owned() + "shows?mt=all&st=search&q=" + &encode(query.trim());
 
     let response: Option<String> = http::get(&url);
 

@@ -30,7 +30,7 @@ impl Database {
         } else {
             let mut anime = found.unwrap();
             if get_timestamp() - anime.last_updated > crate::CACHE_ANIME_COUNTDOWN {
-                self.update_existing(id, &mut anime)
+                self.update_existing(&mut anime)
             } else {
                 Ok(CacheResult::new("On cooldown.", true))
             }
@@ -65,7 +65,7 @@ impl Database {
 
         //Search animeGG and get id
         let animegg_search = scrapers::animegg::anime_search::get(&title).unwrap_or_default();
-
+        println!("{:?}", animegg_search);
         if animegg_search.len() > 0 {
             let mut result_anime = AnimeDetails::new();
             let mut found = false;
@@ -167,17 +167,9 @@ impl Database {
         }
         anime.last_updated = utils::get_timestamp();
 
-        if title.len() > 0 {
-            self.insert_new_anime(anime)
-        } else {
-            Ok(CacheResult::new("No data collected", true))
-        }
+        self.insert_new_anime(anime)
     }
-    fn update_existing(
-        &self,
-        id: &str,
-        current: &mut Anime,
-    ) -> mongodb::error::Result<CacheResult> {
+    fn update_existing(&self, current: &mut Anime) -> mongodb::error::Result<CacheResult> {
         //rating episodes count and episodes
         let mut details = current.details.clone();
         let mut episodes = current.episodes.clone();
@@ -286,11 +278,10 @@ impl Database {
             let missing_eps = (details.episodes - current.details.episodes) as usize;
 
             if missing_eps < ep_list_gogo.len() {
-                ep_list_gogo.splice(0..(ep_list_gogo.len() - missing_eps), std::iter::empty());
+                ep_list_gogo.splice(0..ep_list_gogo.len() - missing_eps, std::iter::empty());
             }
             if missing_eps < ep_list_animegg.len() {
-                ep_list_animegg
-                    .splice(0..(ep_list_animegg.len() - missing_eps), std::iter::empty());
+                ep_list_animegg.splice(0..ep_list_animegg.len() - missing_eps, std::iter::empty());
             }
 
             let pool = ThreadPool::new(missing_eps);
@@ -314,7 +305,7 @@ impl Database {
                         let mut animegg_url = "".to_string();
                         if animegg_len > i {
                             animegg_url =
-                                scrapers::animegg::anime_stream::get(&ep_anime).unwrap_or_default()
+                                scrapers::animegg::anime_stream::get(&ep_anime).unwrap_or_default();
                         }
 
                         let mut ep = Episode::new();
@@ -348,8 +339,8 @@ impl Database {
                             scrapers::animegg::anime_stream::get(&ep_animegg).unwrap_or_default();
                         let mut gogo_url = "".to_string();
                         if gogo_len > i {
-                            gogo_url =
-                                scrapers::gogoanime::anime_stream::get(&ep_gogo).unwrap_or_default()
+                            gogo_url = scrapers::gogoanime::anime_stream::get(&ep_gogo)
+                                .unwrap_or_default();
                         }
 
                         let mut ep = Episode::new();
@@ -374,7 +365,7 @@ impl Database {
 
             eps.extend(new_eps);
             self.update_anime(
-                id,
+                &current.id,
                 Some(details_clone),
                 Some(eps),
                 Some(&current.animegg_id),
@@ -384,7 +375,7 @@ impl Database {
         } else {
             let eps = episodes_mt.lock().unwrap().to_vec();
             self.update_anime(
-                id,
+                &current.id,
                 Some(details_clone),
                 Some(eps),
                 Some(&current.animegg_id),

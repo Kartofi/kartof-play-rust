@@ -1,3 +1,5 @@
+extern crate urlencoding;
+
 use std::time::Instant;
 
 use dotenv::dotenv;
@@ -32,7 +34,7 @@ fn main() {
 
     let po = ThreadPool::new(100);
     database
-        .cache_anime("a-channel-special-", IdType::Gogoanime)
+        .cache_anime("100-perfect-love", IdType::Gogoanime)
         .unwrap();
     for i in 0..0 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
