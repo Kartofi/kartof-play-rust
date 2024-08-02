@@ -8,6 +8,7 @@ use choki::structs::*;
 use choki::*;
 use mongodb::Database;
 use reqwest;
+use scrapers::gogoanime;
 use threadpool::ThreadPool;
 use utils::http;
 use utils::types::IdType;
@@ -15,6 +16,8 @@ use utils::types::IdType;
 mod caching;
 mod scrapers;
 mod utils;
+
+mod node_js;
 //Anime Schedule
 pub static ANIMESCHEDULE: &str = "https://animeschedule.net/";
 //AnimeGG
@@ -28,11 +31,14 @@ pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 pub static CACHE_ANIME_COUNTDOWN: i64 = 300; // 5 MINS
 fn main() {
     dotenv().ok(); // Load ENV
+    node_js::start(); // Setup node.js stuff
     let start = Instant::now();
 
+    println!(
+        "{} dd",
+        gogoanime::anime_streaming_url::get("naruto-episode-1").unwrap()
+    );
     let mut database = utils::mongodb::Database::new().unwrap();
-
-    println!("{:?}", database.cache_recent().unwrap());
 
     let po = ThreadPool::new(100);
 

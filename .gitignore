@@ -1,2 +1,4 @@
 /target
 .env
+/src/node_js/node_modules
+/src/node_js/package-lock.json
