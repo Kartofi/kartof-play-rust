@@ -32,9 +32,11 @@ fn main() {
 
     let mut database = utils::mongodb::Database::new().unwrap();
 
+    println!("{:?}", database.cache_recent().unwrap());
+
     let po = ThreadPool::new(100);
 
-    for i in 0..100 {
+    for i in 0..0 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {

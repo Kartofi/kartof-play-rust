@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::default;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -24,9 +25,12 @@ use crate::utils;
 
 impl Database {
     pub fn cache_anime(&self, id: &str, id_type: IdType) -> mongodb::error::Result<CacheResult> {
-        let found = self.get_anime_id(id, id_type);
+        let found = self.get_anime_id(id, &id_type);
         if found.is_none() {
-            self.create_new(id)
+            match id_type {
+                IdType::Gogoanime => self.create_new(id),
+                _default => Ok(CacheResult::new("The id should be gogoanime.", true)),
+            }
         } else {
             let mut anime = found.unwrap();
             if get_timestamp() - anime.last_updated > crate::CACHE_ANIME_COUNTDOWN {
@@ -36,6 +40,7 @@ impl Database {
             }
         }
     }
+    ///Cache new Anime using only gogoanime id
     fn create_new(&self, gogo_id: &str) -> mongodb::error::Result<CacheResult> {
         let mut anime = Anime::new();
 
@@ -65,7 +70,7 @@ impl Database {
 
         //Search animeGG and get id
         let animegg_search = scrapers::animegg::anime_search::get(&title).unwrap_or_default();
-        println!("{:?}", animegg_search);
+
         if animegg_search.len() > 0 {
             let mut result_anime = AnimeDetails::new();
             let mut found = false;
@@ -204,6 +209,7 @@ impl Database {
             }
         }
         //Anime GG
+        // If no id get the animegg id
         if current.animegg_id.len() == 0 {
             let animegg_search =
                 scrapers::animegg::anime_search::get(&current.title).unwrap_or_default();
@@ -364,25 +370,24 @@ impl Database {
             let new_eps = episodes_new_mt.lock().unwrap().to_vec();
 
             eps.extend(new_eps);
-            self.update_anime(
+            return self.update_anime(
                 &current.id,
                 Some(details_clone),
                 Some(eps),
                 Some(&current.animegg_id),
                 Some(&current.mal_id),
                 Some(&current.schedule_id),
-            )
-        } else {
-            let eps = episodes_mt.lock().unwrap().to_vec();
-            self.update_anime(
-                &current.id,
-                Some(details_clone),
-                Some(eps),
-                Some(&current.animegg_id),
-                Some(&current.mal_id),
-                Some(&current.schedule_id),
-            )
+            );
         }
+        let eps = episodes_mt.lock().unwrap().to_vec();
+        return self.update_anime(
+            &current.id,
+            Some(details_clone),
+            Some(eps),
+            Some(&current.animegg_id),
+            Some(&current.mal_id),
+            Some(&current.schedule_id),
+        );
     }
 }
 fn compare(a: &str, b: &str) -> Ordering {
@@ -393,9 +398,9 @@ fn compare(a: &str, b: &str) -> Ordering {
 }
 
 fn cache_episodes_gogo(movie_id: &str) -> Vec<Episode> {
-    let mut episodes: Vec<Episode> = Vec::new();
+    let episodes: Vec<Episode> = Vec::new();
 
-    let mut episodes_gogoanime = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
+    let episodes_gogoanime = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
 
     let mut thread_count = episodes_gogoanime.len();
 

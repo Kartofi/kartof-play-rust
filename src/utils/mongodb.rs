@@ -1,5 +1,3 @@
-
-
 use mongodb::{
     bson::{self, doc, Regex},
     options::IndexOptions,
@@ -53,16 +51,16 @@ impl Database {
         }
         Ok(results)
     }
-    pub fn get_anime_id(&self, id: &str, id_type: IdType) -> Option<Anime> {
-        if id_type == IdType::KartofPlay {
+    pub fn get_anime_id(&self, id: &str, id_type: &IdType) -> Option<Anime> {
+        if id_type == &IdType::KartofPlay {
             self.get_anime(id, "id")
-        } else if id_type == IdType::AnimeGG {
+        } else if id_type == &IdType::AnimeGG {
             self.get_anime(id, "animegg_id")
-        } else if id_type == IdType::Gogoanime {
+        } else if id_type == &IdType::Gogoanime {
             self.get_anime(id, "gogo_id")
-        } else if id_type == IdType::AnimeSchedule {
+        } else if id_type == &IdType::AnimeSchedule {
             self.get_anime(id, "schedule_id")
-        } else if id_type == IdType::MAL {
+        } else if id_type == &IdType::MAL {
             self.get_anime(id, "mal_id")
         } else {
             None
