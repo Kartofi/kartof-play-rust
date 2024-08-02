@@ -13,6 +13,8 @@ use std::path::Path;
 
 // Setup node.js
 pub fn start() {
+    env::set_current_dir("./node_js").unwrap();
+
     println!("Checking for node.js installation");
     let version = check_node_install();
     if version.0 == false {
@@ -22,11 +24,11 @@ pub fn start() {
 
     //Install node.js modules
     println!("Updating/Installing node.js modules");
-    update_node_modules()
+    update_node_modules();
 }
 fn update_node_modules() {
     let mut cmd = Command::new(NPM)
-        .arg("install")
+        .args(["i", "@consumet/extensions"])
         .stdin(Stdio::null()) // No input to provide
         .stdout(Stdio::inherit()) // Print output to the same place as the Rust process
         .stderr(Stdio::inherit()) // Print errors to the same place as the Rust process
