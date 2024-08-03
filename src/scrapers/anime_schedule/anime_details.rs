@@ -1,7 +1,9 @@
+use crate::scrapers;
 use crate::utils::http;
 use crate::utils::types::*;
 use chrono::DurationRound;
 use chrono::FixedOffset;
+use chrono_tz::Tz;
 use mongodb::results;
 use visdom::types::BoxDynError;
 use visdom::types::Elements;
@@ -25,7 +27,24 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                         &time_res.unwrap().to_string().replace("&#43;", ":00+"),
                     )
                     .unwrap();
-                    timestamp = datetime.timestamp();
+
+                    let timezone_text = root.find("div.release-time-timezone-text").text();
+                    let desired_timezone = timezone_text
+                        .split(" ")
+                        .last()
+                        .unwrap_or_default()
+                        .to_string()
+                        .replace("(", "")
+                        .replace(")", "");
+
+                    let target_timezone: Tz = scrapers::timezones::get_timezone(&desired_timezone)
+                        .expect("Timezone not in index")
+                        .parse()
+                        .expect("Invalid timezone name");
+
+                    let datetime_in_target_tz = datetime.with_timezone(&target_timezone);
+
+                    timestamp = datetime_in_target_tz.timestamp();
                 }
 
                 //let time_zone = root.find("div.release-time-timezone-text").text();

@@ -1,6 +1,13 @@
+use core::time;
+use std::collections::HashMap;
+
+use crate::scrapers;
+use crate::scrapers::anime_schedule;
 use crate::utils::http;
 use crate::utils::types::*;
 use chrono::DurationRound;
+use chrono::Timelike;
+use chrono_tz::Tz;
 use visdom::types::BoxDynError;
 use visdom::types::Elements;
 use visdom::Vis;
@@ -15,8 +22,8 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                // let timezone = root.find("#timetable-timezone-text-mobile").text();
-
+                let timezone = root.find("#timetable-timezone-text-mobile").text();
+                println!("{}", timezone);
                 let today = root.find("#active-day").first().children("");
                 for child in today {
                     if child.has_attribute("class") {
@@ -33,7 +40,9 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                                 .find("time.show-air-time")
                                 .attr("datetime")
                                 .unwrap()
-                                .to_string();
+                                .to_string()
+                                .replace("&#43;", ":00+");
+                            let isPM = time_bar.find("time.show-air-time").text().contains("PM");
 
                             let show = children.find("a.show-link");
                             let image_el = show.find("img");
@@ -53,7 +62,24 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             let release_time =
                                 DateTime::parse_from_rfc3339(&time).unwrap_or_default();
 
-                            if release_time < now {
+                            let desired_timezone = timezone
+                                .split(" ")
+                                .last()
+                                .unwrap_or_default()
+                                .to_string()
+                                .replace("(", "")
+                                .replace(")", "");
+
+                            let target_timezone: Tz =
+                                scrapers::timezones::get_timezone(&desired_timezone)
+                                    .expect("Timezone not in index")
+                                    .parse()
+                                    .expect("Invalid timezone name");
+
+                            let datetime_in_target_tz =
+                                release_time.with_timezone(&target_timezone);
+
+                            if datetime_in_target_tz < now {
                                 out = true;
                             }
 
@@ -63,7 +89,7 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             release_data.episode_num = Some(episode);
                             release_data.id = Some(id);
                             release_data.title = Some(title);
-                            release_data.release_time = Some(release_time.timestamp());
+                            release_data.release_time = Some(datetime_in_target_tz.timestamp());
                             release_data.is_sub = children.html().contains("SUB</span>");
 
                             data.push(release_data);
