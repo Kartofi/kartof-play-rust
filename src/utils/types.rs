@@ -1,6 +1,28 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Home {
+    pub date: String, // in format day:month:year
+
+    pub last_updated: i64,
+
+    pub schedule: Vec<AnimeRelease>,
+    pub recent: Vec<AnimeRelease>,
+    pub popular: Vec<AnimeDetails>,
+}
+impl Home {
+    pub fn new() -> Home {
+        Home {
+            date: "".to_string(),
+            last_updated: 0,
+
+            schedule: Vec::new(),
+            recent: Vec::new(),
+            popular: Vec::new(),
+        }
+    }
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Anime {
     pub title: String,
     //Ids

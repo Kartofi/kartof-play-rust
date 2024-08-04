@@ -33,11 +33,11 @@ pub fn get(page: &str) -> Result<Vec<AnimeRelease>, ScraperError> {
                     });
                     let id_str = id.clone().unwrap_or_default();
 
-                    let mut id_parts = id_str.split("-episode-");
+                    let id_parts: Vec<&str> = id_str.split("-episode-").collect();
                     let mut ep_num: String = "".to_string();
-                    if id_parts.clone().count() == 2 {
-                        id = Some(id_parts.nth(0).unwrap_or_default().to_string());
-                        ep_num = id_parts.nth(1).unwrap_or_default().to_string();
+                    if id_parts.len() == 2 {
+                        id = Some(id_parts[0].to_string());
+                        ep_num = id_parts[1].to_string();
                     }
 
                     let mut details = AnimeRelease::new();

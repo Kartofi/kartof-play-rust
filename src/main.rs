@@ -28,21 +28,16 @@ pub static MALURL: &str = "https://myanimelist.net/";
 pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
 pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
-pub static CACHE_ANIME_COUNTDOWN: i64 = 300; // 5 MINS
+pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
 fn main() {
     dotenv().ok(); // Load ENV
-                   //node_js::start(); // Setup node.js stuff
-    let start = Instant::now();
+    node_js::start(); // Setup node.js stuff
 
-    println!(
-        "{:?}",
-        anime_schedule::anime_details::get("boku-no-hero-academia-7").unwrap()
-    );
     let mut database = utils::mongodb::Database::new().unwrap();
 
     let po = ThreadPool::new(100);
 
-    for i in 0..0 {
+    for i in 0..100 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {
@@ -63,16 +58,15 @@ fn main() {
         .get(
             "/".to_string(),
             |mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>| {
-                let body = reqwest::blocking::get("https://www.rust-lang.org")
-                    .unwrap()
-                    .text()
-                    .unwrap();
+                let query = req.query.get("query").unwrap();
+                let result = database.unwrap().search_anime(query, 10).unwrap();
 
-                println!(
-                    "{:?}",
-                    database.unwrap().search_anime("naruto", 10).unwrap().len()
-                );
-                res.send_bytes(&body.as_bytes(), None);
+                let mut str_o = "".to_string();
+                for res in result {
+                    str_o.push_str(&res.title);
+                    str_o.push_str("\n");
+                }
+                res.send_string(&str_o);
             },
         )
         .unwrap();

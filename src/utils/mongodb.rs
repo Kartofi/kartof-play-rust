@@ -6,7 +6,7 @@ use mongodb::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::types::*;
+use super::{get_timestamp, types::*};
 #[derive(Debug, Clone)]
 pub struct Database {
     client: Client,
@@ -19,7 +19,61 @@ impl Database {
         let client = Client::with_uri_str(uri)?;
         Ok(Database { client: client })
     }
+    //Home
+    pub fn update_home(
+        &self,
+        mut data: Home,
+        search: Option<Home>,
+    ) -> mongodb::error::Result<CacheResult> {
+        let database = self.client.database("Kartof-Play");
 
+        let col: Collection<Home> = database.collection("Home");
+
+        if search.is_none() {
+            data.last_updated = get_timestamp();
+            col.insert_one(data, None)?;
+        } else {
+            let filter = doc! {"date": &data.date};
+
+            let mut update = doc! {};
+
+            let popular = bson::to_bson(&data.popular);
+            if popular.is_ok() {
+                update.insert("popular", popular.unwrap());
+            }
+
+            let recent = bson::to_bson(&data.recent);
+            if recent.is_ok() {
+                update.insert("recent", recent.unwrap());
+            }
+
+            let schedule = bson::to_bson(&data.schedule);
+            if schedule.is_ok() {
+                update.insert("schedule", schedule.unwrap());
+            }
+
+            update.insert("last_updated", get_timestamp());
+            col.update_one(filter, doc! { "$set": update}, None)?;
+        }
+        Ok(CacheResult::new("", false))
+    }
+    pub fn get_home(&self, date: &str) -> mongodb::error::Result<Option<Home>> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Home> = database.collection("Home");
+
+        let filter = doc! {"date": date};
+
+        let cursor = col.find(filter, None)?;
+        let mut cursor_peekable = cursor.peekable();
+
+        if cursor_peekable.peek().is_none() {
+            return Ok(None);
+        }
+
+        Ok(Some(cursor_peekable.next().unwrap()?))
+    }
+    //Animes
     pub fn search_anime(
         &self,
         title: &str,
@@ -29,8 +83,14 @@ impl Database {
 
         let col: Collection<Anime> = database.collection("Animes");
 
-        let filter =
-            doc! { "title": Regex { pattern: title.to_string(), options: "i".to_string() } };
+        let title = &title.replace("+", " ");
+
+        let filter = doc! {
+            "$or": [
+                { "title": Regex { pattern: "(?i)".to_string() +title, options: "i".to_string() } },
+                { "details.other_names": { "$regex": Regex { pattern: "(?i)".to_string() +title, options: "i".to_string() } } }
+            ]
+        };
 
         // Search for Anime documents matching the filter
         let cursor = col.find(filter, None)?;

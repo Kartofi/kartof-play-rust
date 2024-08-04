@@ -33,7 +33,7 @@ impl Database {
             }
         } else {
             let mut anime = found.unwrap();
-            if get_timestamp() - anime.last_updated > crate::CACHE_ANIME_COUNTDOWN {
+            if get_timestamp() - anime.last_updated > crate::CACHE_COUNTDOWN {
                 self.update_existing(&mut anime)
             } else {
                 Ok(CacheResult::new("On cooldown.", true))
@@ -159,7 +159,9 @@ impl Database {
                 }
             }
         }
-
+        if anime.details.rating == "" {
+            anime.details.rating = "N/A".to_string();
+        }
         //Anime Schedule
 
         let schedule_search =
@@ -191,6 +193,10 @@ impl Database {
                 current.mal_id = result_mal.id.unwrap_or_default();
                 details.rating = result_mal.rating;
             }
+        }
+
+        if details.rating == "" {
+            details.rating = "N/A".to_string();
         }
         //Schedule
         if current.schedule_id.len() > 0 {

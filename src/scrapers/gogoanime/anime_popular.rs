@@ -11,17 +11,17 @@ pub fn get(page: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let results = root.find("div.last_episodes > ul > li").children("");
+                let results = root.find("div.last_episodes > ul > li");
 
                 for result in results {
                     let children = result.children();
 
-                    let name_el = children.find("p.name > a");
+                    let name_el = children.find("a");
 
                     let title = name_el.attr("title").map(|att| att.to_string());
 
                     let id: String = name_el
-                        .attr("title")
+                        .attr("href")
                         .map(|att| att.to_string())
                         .unwrap_or_default()
                         .split("/category/")
@@ -30,11 +30,14 @@ pub fn get(page: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                         .to_string();
 
                     let image = children.find("img").attr("src").map(|att| att.to_string());
-                    let released: String = children
-                        .find("p.released")
+                    let released: String = result
                         .text()
                         .trim()
-                        .replace("Released: ", "");
+                        .replace(" ", "")
+                        .split("Released:")
+                        .nth(1)
+                        .unwrap_or_default()
+                        .to_string();
 
                     let mut details = AnimeDetails::new();
                     details.title = title;

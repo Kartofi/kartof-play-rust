@@ -23,7 +23,7 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                     }
                     let mut details = AnimeRelease::new();
                     details.title = Some(id.text());
-                    if (id.has_attr("href")) {
+                    if id.has_attr("href") {
                         details.id =
                             Some(id.attr("href").unwrap().to_string().replace("/series/", ""))
                     }
