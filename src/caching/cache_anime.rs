@@ -239,7 +239,7 @@ impl Database {
         let pool = ThreadPool::new(episodes.len() + 1);
 
         let episodes_mt = Arc::from(Mutex::from(episodes));
-        let end_iter_eps = if pool.max_count() == 2 {
+        let end_iter_eps = if pool.max_count() <= 2 {
             1
         } else {
             pool.max_count() - 2
@@ -397,8 +397,11 @@ impl Database {
     }
 }
 fn compare(a: &str, b: &str) -> Ordering {
-    match (a.parse::<u32>(), b.parse::<u32>()) {
-        (Ok(a_num), Ok(b_num)) => a_num.cmp(&b_num),
+    match (
+        a.replace("-", ".").parse::<f32>(),
+        b.replace("-", ".").parse::<f32>(),
+    ) {
+        (Ok(a_num), Ok(b_num)) => a_num.partial_cmp(&b_num).unwrap_or(Ordering::Equal),
         _ => a.cmp(b),
     }
 }
@@ -422,11 +425,16 @@ fn cache_episodes_gogo(movie_id: &str) -> Vec<Episode> {
         pool.execute(move || {
             if ep_id.len() != 0 {
                 let mut episode = Episode::new();
-                episode.num = ep_id
-                    .split("-episode-")
-                    .last()
-                    .unwrap_or_default()
-                    .to_string();
+                if ep_id.contains("episode") == true {
+                    episode.num = ep_id
+                        .split("-episode-")
+                        .last()
+                        .unwrap_or_default()
+                        .to_string();
+                } else {
+                    episode.num = "0".to_string();
+                }
+
                 let stream_url = scrapers::gogoanime::anime_stream::get(&ep_id).unwrap_or_default();
                 if stream_url.is_empty() == false {
                     episode.gogoanime_url = stream_url;

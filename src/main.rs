@@ -36,8 +36,8 @@ fn main() {
     let mut database = utils::mongodb::Database::new().unwrap();
 
     let po = ThreadPool::new(100);
-
-    for i in 0..100 {
+    let mut second = false;
+    for i in 0..0 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {
@@ -49,7 +49,15 @@ fn main() {
                 println!("Done - {}", anime);
             });
         }
-        po.join();
+        let mut waited = false;
+        if second == true {
+            second = false;
+            waited = true;
+            po.join();
+        }
+        if waited == false {
+            second = true;
+        }
     }
 
     let mut server = Server::new(Some(1024), Some(database));
@@ -63,10 +71,14 @@ fn main() {
 
                 let mut str_o = "".to_string();
                 for res in result {
+                    str_o.push_str("<img src='");
+                    str_o.push_str(&res.details.cover_url);
+                    str_o.push_str("'>");
+                    str_o.push_str("<br>");
                     str_o.push_str(&res.title);
-                    str_o.push_str("\n");
+                    str_o.push_str("<br>");
                 }
-                res.send_string(&str_o);
+                res.send_bytes(&str_o.as_bytes(), Some(ContentType::Html));
             },
         )
         .unwrap();

@@ -1,6 +1,6 @@
 use mongodb::{
     bson::{self, doc, Regex},
-    options::IndexOptions,
+    options::{FindOptions, IndexOptions},
     sync::{Client, Collection, Cursor},
     IndexModel,
 };
@@ -86,16 +86,24 @@ impl Database {
         let title = &title.replace("+", " ");
 
         let filter = doc! {
-            "$or": [
-                { "title": Regex { pattern: "(?i)".to_string() +title, options: "i".to_string() } },
-                { "details.other_names": { "$regex": Regex { pattern: "(?i)".to_string() +title, options: "i".to_string() } } }
-            ]
+            "$text": {
+                "$search": title,
+                "$caseSensitive": false
+            }
         };
 
-        // Search for Anime documents matching the filter
-        let cursor = col.find(filter, None)?;
+        let sort = doc! {
+            "score": { "$meta": "textScore" }
+        };
 
-        // Iterate over the results and print each document
+        let options = FindOptions::builder()
+            .sort(sort)
+            .limit(max_results as i64)
+            .projection(doc! { "score": { "$meta": "textScore" } })
+            .build();
+
+        let cursor = col.find(filter, options)?;
+
         let mut results: Vec<Anime> = Vec::new();
 
         for result in cursor {

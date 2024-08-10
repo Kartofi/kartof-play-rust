@@ -123,8 +123,8 @@ impl Episode {
     pub fn new() -> Episode {
         Episode {
             num: "".to_string(),
-            gogoanime_url: "".to_string(),
-            animegg_url: "".to_string(),
+            gogoanime_url: "/error".to_string(),
+            animegg_url: "/error".to_string(),
         }
     }
 }
