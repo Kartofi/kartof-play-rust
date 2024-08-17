@@ -75,7 +75,7 @@ impl Database {
             let mut result_anime = AnimeDetails::new();
             let mut found = false;
             for anime_res in animegg_search {
-                if anime_res.episodes.abs_diff(anime.details.episodes) < anime.details.episodes / 2
+                if anime_res.episodes.abs_diff(anime.details.episodes) <= anime.details.episodes / 2
                 {
                     found = true;
                     result_anime = anime_res;
@@ -168,9 +168,11 @@ impl Database {
             scrapers::anime_schedule::anime_search::get(&title).unwrap_or_default();
         if schedule_search.len() > 0 {
             let result_schedule = schedule_search[0].clone();
-
-            anime.details.new_ep = result_schedule.new_ep;
-            anime.schedule_id = result_schedule.id.unwrap_or_default();
+            let id_schedule = result_schedule.id.unwrap_or_default();
+            if id_schedule != "https://animeschedule.net" && id_schedule != "" {
+                anime.details.new_ep = result_schedule.new_ep;
+                anime.schedule_id = id_schedule;
+            }
         }
         anime.last_updated = utils::get_timestamp();
 
@@ -199,7 +201,7 @@ impl Database {
             details.rating = "N/A".to_string();
         }
         //Schedule
-        if current.schedule_id.len() > 0 {
+        if current.schedule_id.len() > 0 && current.schedule_id != "https://animeschedule.net" {
             let schedule_data = scrapers::anime_schedule::anime_details::get(&current.schedule_id);
             if schedule_data.is_ok() {
                 details.new_ep = schedule_data.unwrap().new_ep;
@@ -209,9 +211,11 @@ impl Database {
                 scrapers::anime_schedule::anime_search::get(&current.title).unwrap_or_default();
             if schedule_search.len() > 0 {
                 let result_schedule = schedule_search[0].clone();
-
-                details.new_ep = result_schedule.new_ep;
-                current.schedule_id = result_schedule.id.unwrap_or_default();
+                let id_schedule = result_schedule.id.unwrap_or_default();
+                if id_schedule != "https://animeschedule.net" && id_schedule != "" {
+                    details.new_ep = result_schedule.new_ep;
+                    current.schedule_id = id_schedule;
+                }
             }
         }
         //Anime GG
@@ -221,7 +225,7 @@ impl Database {
                 scrapers::animegg::anime_search::get(&current.title).unwrap_or_default();
             if animegg_search.len() > 0 {
                 for anime in animegg_search {
-                    if anime.episodes.abs_diff(details.episodes) < details.episodes / 2 {
+                    if anime.episodes.abs_diff(details.episodes) <= details.episodes / 2 {
                         current.animegg_id = anime.id.unwrap_or_default();
                         break;
                     }

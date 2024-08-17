@@ -78,6 +78,7 @@ impl Database {
         &self,
         title: &str,
         max_results: usize,
+        page: usize,
     ) -> mongodb::error::Result<Vec<Anime>> {
         let database = self.client.database("Kartof-Play");
 
@@ -95,9 +96,10 @@ impl Database {
         let sort = doc! {
             "score": { "$meta": "textScore" }
         };
-
+        let skip = max_results * page;
         let options = FindOptions::builder()
             .sort(sort)
+            .skip(skip as u64)
             .limit(max_results as i64)
             .projection(doc! { "score": { "$meta": "textScore" } })
             .build();

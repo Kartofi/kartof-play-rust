@@ -25,6 +25,9 @@ pub fn start() {
     //Install node.js modules
     println!("Updating/Installing node.js modules");
     update_node_modules();
+
+    //Return default path
+    env::set_current_dir("../").unwrap();
 }
 fn update_node_modules() {
     let mut cmd = Command::new(NPM)

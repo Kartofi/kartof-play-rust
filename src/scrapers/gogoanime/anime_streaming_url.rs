@@ -6,7 +6,7 @@ use std::process::Stdio;
 
 pub fn get(ep_id: &str) -> Result<String, ScraperError> {
     let mut cmd = Command::new("node")
-        .args(["./get_streaming.js", ep_id])
+        .args(["./node_js/get_streaming.js", ep_id])
         .stdout(Stdio::piped()) // Redirect stdout to null
         .stderr(Stdio::null()) // Redirect stderr to null
         .spawn()

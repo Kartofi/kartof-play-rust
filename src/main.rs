@@ -1,6 +1,7 @@
 extern crate urlencoding;
 
 use std::time::Instant;
+use std::{env, fs};
 
 use dotenv::dotenv;
 
@@ -64,10 +65,10 @@ fn main() {
 
     server
         .get(
-            "/".to_string(),
+            "/search/[query]/[page]".to_string(),
             |mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>| {
-                let query = req.query.get("query").unwrap();
-                let result = database.unwrap().search_anime(query, 10).unwrap();
+                let query = req.params.get("query").unwrap();
+                let result = database.unwrap().search_anime(query, 2, 2).unwrap();
 
                 let mut str_o = "".to_string();
                 for res in result {
@@ -79,6 +80,19 @@ fn main() {
                     str_o.push_str("<br>");
                 }
                 res.send_bytes(&str_o.as_bytes(), Some(ContentType::Html));
+            },
+        )
+        .unwrap();
+    server
+        .get(
+            "/[id]".to_string(),
+            |mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>| {
+                let data = fs::read_to_string("./ui/index.html").unwrap();
+                res.set_header(&Header::new(
+                    "Access-Control-Allow-Origin".to_string(),
+                    "*".to_string(),
+                ));
+                res.send_bytes(data.as_bytes(), Some(ContentType::Html));
             },
         )
         .unwrap();

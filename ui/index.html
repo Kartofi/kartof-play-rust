@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video.js HLS Quality Selector</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <link
+      href="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.css"
+      rel="stylesheet"
+    />
+  </head>
+  <style>
+    .vjs-menu-item {
+      /* background-color: rgb(88, 0, 110); */
+    }
+    .vjs-menu-item::after {
+      background-color: rgb(88, 0, 110);
+    }
+  </style>
+  <body>
+    <video-js
+      id="my-video"
+      class="video-js vjs-default-skin"
+      controls
+      preload="auto"
+      width="640"
+      height="264"
+    ></video-js>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script src="https://unpkg.com/videojs-contrib-quality-levels@2.1.0/dist/videojs-contrib-quality-levels.js"></script>
+    <script src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"></script>
+
+    <script>
+      // Function to set a cookie
+      function setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+          var date = new Date();
+          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+      }
+
+      // Function to get a cookie
+      function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(";");
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0)
+            return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+      var player = videojs("my-video", {
+        controls: true,
+        autoplay: false,
+        preload: "auto",
+        sources: [
+          {
+            src: "https://www083.anzeat.pro/streamhls/e34a946c6a99446f8f50ccb3c187527e/ep.1.1704183218.m3u8", // Replace this with your HLS URL
+            type: "application/x-mpegURL",
+          },
+        ],
+      });
+
+      // Initialize the quality levels plugin
+      player.qualityLevels();
+
+      // Initialize the HTTP source selector plugin
+      player.httpSourceSelector();
+
+      // Optional: Customize the label of the selector button
+      player.on("loadedmetadata", function () {
+        var button = player.controlBar.getChild("HttpSourceSelector");
+        if (button) {
+          button.el().firstChild.firstChild.innerHTML = "Quality";
+        }
+      });
+      // Retrieve and set the saved time from the cookie on page load
+      var savedTime = getCookie("videoCurrentTime");
+      if (savedTime) {
+        player.currentTime(parseFloat(savedTime));
+      }
+
+      // Save the current time in the cookie whenever it updates
+      player.on("timeupdate", function () {
+        setCookie("videoCurrentTime", player.currentTime(), 7); // Saves for 7 days
+      });
+
+      // Optional: Clear the cookie when the video ends
+      player.on("ended", function () {
+        setCookie("videoCurrentTime", "", -1); // Deletes the cookie
+      });
+    </script>
+  </body>
+</html>
