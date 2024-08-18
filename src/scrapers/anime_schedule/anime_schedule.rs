@@ -23,7 +23,7 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
                 let timezone = root.find("#timetable-timezone-text-mobile").text();
-                println!("{}", timezone);
+
                 let today = root.find("#active-day").first().children("");
                 for child in today {
                     if child.has_attribute("class") {

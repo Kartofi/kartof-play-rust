@@ -170,7 +170,17 @@ impl Database {
             let result_schedule = schedule_search[0].clone();
             let id_schedule = result_schedule.id.unwrap_or_default();
             if id_schedule != "https://animeschedule.net" && id_schedule != "" {
-                anime.details.new_ep = result_schedule.new_ep;
+                if result_schedule.new_ep == 0 {
+                    let is_dub = anime.title.to_lowercase().contains("dub");
+                    let schedule_data =
+                        scrapers::anime_schedule::anime_details::get(&id_schedule, is_dub);
+                    if schedule_data.is_ok() {
+                        anime.details.new_ep = schedule_data.unwrap().new_ep;
+                    }
+                } else {
+                    anime.details.new_ep = result_schedule.new_ep;
+                }
+
                 anime.schedule_id = id_schedule;
             }
         }
@@ -201,8 +211,10 @@ impl Database {
             details.rating = "N/A".to_string();
         }
         //Schedule
+        let is_dub = current.title.to_lowercase().contains("dub");
         if current.schedule_id.len() > 0 && current.schedule_id != "https://animeschedule.net" {
-            let schedule_data = scrapers::anime_schedule::anime_details::get(&current.schedule_id);
+            let schedule_data =
+                scrapers::anime_schedule::anime_details::get(&current.schedule_id, is_dub);
             if schedule_data.is_ok() {
                 details.new_ep = schedule_data.unwrap().new_ep;
             }
@@ -213,7 +225,15 @@ impl Database {
                 let result_schedule = schedule_search[0].clone();
                 let id_schedule = result_schedule.id.unwrap_or_default();
                 if id_schedule != "https://animeschedule.net" && id_schedule != "" {
-                    details.new_ep = result_schedule.new_ep;
+                    if result_schedule.new_ep == 0 {
+                        let schedule_data =
+                            scrapers::anime_schedule::anime_details::get(&id_schedule, is_dub);
+                        if schedule_data.is_ok() {
+                            current.details.new_ep = schedule_data.unwrap().new_ep;
+                        }
+                    } else {
+                        current.details.new_ep = result_schedule.new_ep;
+                    }
                     current.schedule_id = id_schedule;
                 }
             }

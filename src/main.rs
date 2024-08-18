@@ -38,7 +38,7 @@ fn main() {
 
     let po = ThreadPool::new(100);
     let mut second = false;
-    for i in 0..0 {
+    for i in 0..100 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {

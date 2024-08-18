@@ -11,7 +11,7 @@ use visdom::Vis;
 
 use chrono::{DateTime, TimeZone, Utc};
 
-pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
+pub fn get(id: &str, is_dub: bool) -> Result<AnimeDetails, ScraperError> {
     let mut data: AnimeDetails = AnimeDetails::new();
     let url = crate::ANIMESCHEDULE.to_owned() + "anime/" + id;
     let response: Option<String> = http::get(&url);
@@ -19,7 +19,9 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let time_res = root.find("time[id='release-time-subs']").attr("datetime");
+                let selector = "time[id='release-time-".to_string()
+                + if is_dub == true { "dub']" } else { "sub']" };
+                let time_res = root.find(&selector).attr("datetime");
                 let mut timestamp: i64 = 0;
 
                 if time_res.is_none() == false {

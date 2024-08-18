@@ -34,7 +34,7 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
                     } else if html.starts_with("Alternate") {
                         data.other_names = html
                             .replace("Alternate Titles: ", "")
-                            .split("; ")
+                            .split(", ")
                             .map(|item| item.to_string())
                             .collect();
                     }

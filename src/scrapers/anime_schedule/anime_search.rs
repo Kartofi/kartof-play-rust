@@ -12,7 +12,10 @@ use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let mut data: Vec<AnimeDetails> = Vec::new();
-    let url = crate::ANIMESCHEDULE.to_owned() + "shows?mt=all&st=search&q=" + &encode(query.trim());
+    let is_dub = query.to_lowercase().contains("Dub");
+    let url = crate::ANIMESCHEDULE.to_owned()
+        + "shows?mt=all&st=search&q="
+        + &encode(query.replace("(Dub)", "").trim());
 
     let response: Option<String> = http::get(&url);
 
@@ -59,11 +62,13 @@ pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                     data.push(anime);
                 }
                 if data.len() == 0 {
-                    let time_el = root.find("time[id='release-time-subs']");
+                    let selector = "time[id='release-time-".to_string()
+                        + if is_dub == true { "dub']" } else { "sub']" };
+                    let time_el = root.find(&selector);
                     let mut details = AnimeDetails::new();
                     if time_el.is_empty() == false {
                         let time: String = root
-                            .find("time[id='release-time-subs']")
+                            .find(&selector)
                             .attr("datetime")
                             .unwrap()
                             .to_string()
