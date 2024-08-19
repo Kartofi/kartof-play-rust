@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{Datelike, Utc};
 use rand::Rng;
 
 pub mod http;
@@ -8,6 +8,15 @@ pub mod types;
 pub fn get_timestamp() -> i64 {
     let current_timestamp = Utc::now();
     current_timestamp.timestamp()
+}
+pub fn get_date_string() -> String {
+    let current_timestamp = Utc::now();
+    format!(
+        "{}:{}:{}",
+        current_timestamp.day(),
+        current_timestamp.month(),
+        current_timestamp.year()
+    )
 }
 pub fn generate_id() -> i64 {
     let mut rng = rand::thread_rng();

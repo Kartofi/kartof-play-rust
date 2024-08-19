@@ -1,6 +1,6 @@
 extern crate urlencoding;
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::{env, fs};
 
 use dotenv::dotenv;
@@ -30,15 +30,22 @@ pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
 pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
 pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
+
+pub static CACHE_HOME_FREQUENCY_NUM: i64 = 300; // 5 MINS
+pub static CACHE_HOME_FREQUENCY: Duration = Duration::from_secs(CACHE_HOME_FREQUENCY_NUM as u64); // 5 MINS
+
 fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
 
     let mut database = utils::mongodb::Database::new().unwrap();
+    caching::start(database.clone());
+
+    //database.cache_home().unwrap();
 
     let po = ThreadPool::new(100);
-    let mut second = false;
-    for i in 0..100 {
+    let mut second: bool = false;
+    for i in 0..0 {
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Started page {}", i);
         for anime in page1 {

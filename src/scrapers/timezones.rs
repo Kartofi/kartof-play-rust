@@ -149,7 +149,6 @@ const TIMEZONE_MAP: &[(&str, &str)] = &[
     ("ZST", "Africa/Harare"),
 ];
 pub fn get_timezone(tz: &str) -> Option<&str> {
-    println!("{}", tz);
     TIMEZONE_MAP
         .iter()
         .find_map(|&(abbr, name)| if abbr == tz { Some(name) } else { None })

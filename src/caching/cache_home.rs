@@ -1,9 +1,9 @@
 use chrono::{Datelike, Utc};
 
 use crate::{
-    scrapers::{animegg, gogoanime},
+    scrapers::{self, anime_schedule::anime_schedule, animegg, gogoanime},
     utils::{
-        get_timestamp,
+        get_date_string, get_timestamp,
         mongodb::Database,
         types::{Anime, AnimeDetails, AnimeRelease, CacheResult, Home, IdType},
     },
@@ -13,16 +13,12 @@ impl Database {
     pub fn cache_home(&self) -> mongodb::error::Result<(CacheResult, Home)> {
         let mut home = Home::new();
 
-        let time = Utc::now();
-        home.date = time.day().to_string()
-            + ":"
-            + &time.month().to_string()
-            + ":"
-            + &time.year().to_string();
+        home.date = get_date_string();
 
         let search = self.get_home(&home.date).unwrap_or_default();
         if search.is_some()
-            && get_timestamp() - search.as_ref().unwrap().last_updated < crate::CACHE_COUNTDOWN
+            && get_timestamp() - search.as_ref().unwrap().last_updated
+                < crate::CACHE_HOME_FREQUENCY_NUM
         {
             return Ok((CacheResult::new("On cooldown!", true), Home::new()));
         }
@@ -33,6 +29,11 @@ impl Database {
         let popular = self.get_popular();
         if popular.is_ok() {
             home.popular = popular.unwrap().1;
+        }
+
+        let schedule = self.get_schedule_today();
+        if schedule.is_ok() {
+            home.schedule = schedule.unwrap().1;
         }
         Ok((self.update_home(home.clone(), search).unwrap(), home))
     }
@@ -46,7 +47,6 @@ impl Database {
             recent = animegg::anime_recent::get().unwrap_or_default();
             recent_type = IdType::AnimeGG;
         }
-        let a = AnimeRelease::new();
 
         if recent.len() == 0 {
             return Ok((CacheResult::new("Empty sources", true), Vec::new()));
@@ -54,7 +54,8 @@ impl Database {
         let mut result: Vec<AnimeRelease> = Vec::new();
 
         for anime in recent {
-            let anime_data_res = self.get_anime_id(&anime.id.unwrap_or_default(), &recent_type);
+            let id = &anime.id.unwrap_or_default();
+            let anime_data_res = self.get_anime_id(id, &recent_type, id.contains("dub"));
             if anime_data_res.is_none() == true {
                 continue;
             }
@@ -83,7 +84,6 @@ impl Database {
             popular = Vec::new();
             popular_type = IdType::AnimeGG;
         }
-        let a = AnimeRelease::new();
 
         if popular.len() == 0 {
             return Ok((CacheResult::new("Empty sources", true), Vec::new()));
@@ -91,7 +91,8 @@ impl Database {
         let mut result: Vec<AnimeDetails> = Vec::new();
 
         for anime in popular {
-            let anime_data_res = self.get_anime_id(&anime.id.unwrap_or_default(), &popular_type);
+            let id = &anime.id.unwrap_or_default();
+            let anime_data_res = self.get_anime_id(id, &popular_type, id.contains("dub"));
             if anime_data_res.is_none() == true {
                 continue;
             }
@@ -116,5 +117,34 @@ impl Database {
 
         Ok((CacheResult::new("No errors", false), result))
     }
-    fn get_schedule_today() {}
+    fn get_schedule_today(&self) -> mongodb::error::Result<(CacheResult, Vec<AnimeRelease>)> {
+        let schedule: Vec<AnimeRelease> =
+            scrapers::anime_schedule::anime_schedule::get().unwrap_or_default();
+
+        if schedule.len() == 0 {
+            return Ok((CacheResult::new("Empty sources", true), Vec::new()));
+        }
+        let mut result: Vec<AnimeRelease> = Vec::new();
+
+        for anime in schedule {
+            let id = &anime.id.unwrap_or_default();
+            let anime_data_res = self.get_anime_id(id, &IdType::AnimeSchedule, id.contains("dub"));
+            if anime_data_res.is_none() == true {
+                continue;
+            }
+            let anime_data = anime_data_res.unwrap();
+
+            result.push(AnimeRelease {
+                id: Some(anime_data.id),
+                title: Some(anime_data.title),
+                episode_num: anime.episode_num,
+                is_sub: anime.is_sub,
+                is_out: true,
+                cover_url: anime_data.details.cover_url,
+                release_time: anime.release_time,
+            })
+        }
+
+        Ok((CacheResult::new("No errors", false), result))
+    }
 }

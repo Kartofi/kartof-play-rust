@@ -121,23 +121,39 @@ impl Database {
         }
         Ok(results)
     }
-    pub fn get_anime_id(&self, id: &str, id_type: &IdType) -> Option<Anime> {
+    pub fn get_anime_id(&self, id: &str, id_type: &IdType, is_dub: bool) -> Option<Anime> {
         if id_type == &IdType::KartofPlay {
-            self.get_anime(id, "id")
+            self.get_anime(id, "id",is_dub)
         } else if id_type == &IdType::AnimeGG {
-            self.get_anime(id, "animegg_id")
+            self.get_anime(id, "animegg_id",is_dub)
         } else if id_type == &IdType::Gogoanime {
-            self.get_anime(id, "gogo_id")
+            self.get_anime(id, "gogo_id",is_dub)
         } else if id_type == &IdType::AnimeSchedule {
-            self.get_anime(id, "schedule_id")
+            self.get_anime(id, "schedule_id",is_dub)
         } else if id_type == &IdType::MAL {
-            self.get_anime(id, "mal_id")
+            self.get_anime(id, "mal_id",is_dub)
         } else {
             None
         }
     }
 
-    fn get_anime(&self, id: &str, name_id: &str) -> Option<Anime> {
+    pub fn get_scheduleid_empty(&self) -> Vec<String> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+        let mut results: Vec<String> = Vec::new();
+        let filter = doc! {"schedule_id": "", "last_updated": 0 };
+
+        // Search for Anime documents matching the filter
+        let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
+        for result in cursor {
+            let unwraped = result.unwrap();
+            results.push(unwraped.id);
+        }
+        results
+    }
+
+    fn get_anime(&self, id: &str, name_id: &str,is_dub:bool) -> Option<Anime> {
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
@@ -148,7 +164,15 @@ impl Database {
         let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
         for result in cursor {
             match result {
-                Ok(anime) => return Some(anime),
+                Ok(anime) => {
+                    if anime.title.contains("Dub") && is_dub == true{
+                        return Some(anime)
+                    }
+                    if is_dub == false && !anime.title.contains("Dub"){
+                        return Some(anime);
+                    }
+                    
+                },
                 Err(e) => eprintln!("Error: {:?}", e),
             }
         }

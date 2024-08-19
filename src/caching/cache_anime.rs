@@ -25,7 +25,7 @@ use crate::utils;
 
 impl Database {
     pub fn cache_anime(&self, id: &str, id_type: IdType) -> mongodb::error::Result<CacheResult> {
-        let found = self.get_anime_id(id, &id_type);
+        let found = self.get_anime_id(id, &id_type,id.contains("dub"));
         if found.is_none() {
             match id_type {
                 IdType::Gogoanime => self.create_new(id),
@@ -221,6 +221,7 @@ impl Database {
         } else {
             let schedule_search =
                 scrapers::anime_schedule::anime_search::get(&current.title).unwrap_or_default();
+
             if schedule_search.len() > 0 {
                 let result_schedule = schedule_search[0].clone();
                 let id_schedule = result_schedule.id.unwrap_or_default();

@@ -15,7 +15,7 @@ pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
     let is_dub = query.to_lowercase().contains("Dub");
     let url = crate::ANIMESCHEDULE.to_owned()
         + "shows?mt=all&st=search&q="
-        + &encode(query.replace("(Dub)", "").trim());
+        + &encode(query.replace("(Dub)", "").replace("\"", "").trim());
 
     let response: Option<String> = http::get(&url);
 
@@ -93,7 +93,9 @@ pub fn get(query: &str) -> Result<Vec<AnimeDetails>, ScraperError> {
                             );
                         }
                     }
-                    data.push(details);
+                    if details.id.is_some() {
+                        data.push(details);
+                    }
                 }
             }
             Err(err) => {
