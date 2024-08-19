@@ -34,39 +34,13 @@ pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
 pub static CACHE_HOME_FREQUENCY_NUM: i64 = 300; // 5 MINS
 pub static CACHE_HOME_FREQUENCY: Duration = Duration::from_secs(CACHE_HOME_FREQUENCY_NUM as u64); // 5 MINS
 
+pub static CACHE_ALL_ANIME_FREQUENCY: Duration = Duration::from_secs(604800); // 7 Days
 fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
 
     let mut database = utils::mongodb::Database::new().unwrap();
     caching::start(database.clone());
-
-    //database.cache_home().unwrap();
-
-    let po = ThreadPool::new(100);
-    let mut second: bool = false;
-    for i in 0..0 {
-        let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
-        println!("Started page {}", i);
-        for anime in page1 {
-            let clone = database.clone();
-
-            po.execute(move || {
-                println!("Started - {}", anime);
-                clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
-                println!("Done - {}", anime);
-            });
-        }
-        let mut waited = false;
-        if second == true {
-            second = false;
-            waited = true;
-            po.join();
-        }
-        if waited == false {
-            second = true;
-        }
-    }
 
     let mut server = Server::new(Some(1024), Some(database));
 

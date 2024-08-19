@@ -4,12 +4,13 @@ use chrono::Utc;
 use threadpool::ThreadPool;
 
 use crate::{
+    scrapers,
     utils::{
         get_date_string, get_timestamp,
         mongodb::Database,
         types::{AnimeRelease, Home, IdType},
     },
-    CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM,
+    CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM,
 };
 
 pub mod cache_anime;
@@ -23,7 +24,42 @@ pub fn start(database: Database) {
         CACHE_HOME_FREQUENCY.as_secs()
     );
     cache_home_task(database);
+    println!(
+        "Starting all animes caching task. Every {} days.",
+        CACHE_HOME_FREQUENCY.as_secs() / (24 * 60 * 60)
+    );
+    update_all_animes_task(database_clone);
 }
+fn update_all_animes_task(database: Database) {
+    thread::spawn(move || {
+        let arc = Arc::from(database);
+
+        loop {
+            println!("Started caching all anime %0 done");
+            update_all_animes(&arc);
+
+            thread::sleep(CACHE_ALL_ANIME_FREQUENCY);
+        }
+    });
+}
+fn update_all_animes(database: &Arc<Database>) {
+    let po = ThreadPool::new(100);
+    let arc: Arc<Database> = Arc::clone(database);
+    for i in 0..100 {
+        let arc_clone = arc.clone();
+        let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
+        println!("Caching all anime {}%", i as f64 / 100.00);
+        for anime in page1 {
+            let clone = arc_clone.clone();
+
+            po.execute(move || {
+                clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
+            });
+        }
+        po.join();
+    }
+}
+
 fn cache_home_task(database: Database) {
     thread::spawn(move || {
         let arc = Arc::from(database);
@@ -64,7 +100,6 @@ fn cache_animes(anime_ids: Vec<String>, database: Arc<Database>) {
 
         pool.execute(move || {
             db_clone.cache_anime(&anime_id, IdType::KartofPlay).unwrap();
-            println!("Done {}", &anime_id);
         });
     }
 
