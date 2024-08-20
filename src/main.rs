@@ -1,5 +1,6 @@
 extern crate urlencoding;
 
+use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use std::{env, fs};
 
@@ -31,10 +32,13 @@ pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
 pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
 
-pub static CACHE_HOME_FREQUENCY_NUM: i64 = 300; // 5 MINS
+pub static CACHE_HOME_FREQUENCY_NUM: i64 = 10; // 5 MINS
 pub static CACHE_HOME_FREQUENCY: Duration = Duration::from_secs(CACHE_HOME_FREQUENCY_NUM as u64); // 5 MINS
 
 pub static CACHE_ALL_ANIME_FREQUENCY: Duration = Duration::from_secs(604800); // 7 Days
+
+pub static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(4);
+pub static HTTP_FREQUENCY_TIMEOUT: Duration = Duration::from_secs(2);
 fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff

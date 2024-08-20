@@ -38,17 +38,17 @@ impl Database {
             let mut update = doc! {};
 
             let popular = bson::to_bson(&data.popular);
-            if popular.is_ok() {
+            if popular.is_ok() && data.popular.len() > 0 {
                 update.insert("popular", popular.unwrap());
             }
 
             let recent = bson::to_bson(&data.recent);
-            if recent.is_ok() {
+            if recent.is_ok() && data.recent.len() > 0 {
                 update.insert("recent", recent.unwrap());
             }
 
             let schedule = bson::to_bson(&data.schedule);
-            if schedule.is_ok() {
+            if schedule.is_ok() && data.schedule.len() > 0 {
                 update.insert("schedule", schedule.unwrap());
             }
 
