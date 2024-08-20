@@ -32,7 +32,7 @@ pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
 pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
 
-pub static CACHE_HOME_FREQUENCY_NUM: i64 = 10; // 5 MINS
+pub static CACHE_HOME_FREQUENCY_NUM: i64 = 300; // 5 MINS
 pub static CACHE_HOME_FREQUENCY: Duration = Duration::from_secs(CACHE_HOME_FREQUENCY_NUM as u64); // 5 MINS
 
 pub static CACHE_ALL_ANIME_FREQUENCY: Duration = Duration::from_secs(604800); // 7 Days

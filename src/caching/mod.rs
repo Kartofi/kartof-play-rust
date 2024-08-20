@@ -26,7 +26,7 @@ pub fn start(database: Database) {
     cache_home_task(database);
     println!(
         "Starting all animes caching task. Every {} days.",
-        CACHE_HOME_FREQUENCY.as_secs() / (24 * 60 * 60)
+        CACHE_ALL_ANIME_FREQUENCY.as_secs() / (24 * 60 * 60)
     );
     update_all_animes_task(database_clone);
 }
@@ -35,7 +35,6 @@ fn update_all_animes_task(database: Database) {
         let arc = Arc::from(database);
 
         loop {
-            println!("Started caching all anime %0 done");
             update_all_animes(&arc);
 
             thread::sleep(CACHE_ALL_ANIME_FREQUENCY);
