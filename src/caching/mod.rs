@@ -47,7 +47,7 @@ fn update_all_animes(database: &Arc<Database>) {
     for i in 0..100 {
         let arc_clone = arc.clone();
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
-        println!("Caching all anime {}%", i as f64 / 100.00);
+        println!("Caching all anime {}%", i);
         for anime in page1 {
             let clone = arc_clone.clone();
 
