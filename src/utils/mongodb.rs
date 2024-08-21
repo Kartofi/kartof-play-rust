@@ -149,10 +149,14 @@ impl Database {
         for result in cursor {
             match result {
                 Ok(anime) => {
-                    if anime.title.contains("Dub") && is_dub == true {
-                        return Some(anime);
-                    }
-                    if is_dub == false && !anime.title.contains("Dub") {
+                    if name_id != "id" {
+                        if anime.title.contains("Dub") && is_dub == true {
+                            return Some(anime);
+                        }
+                        if is_dub == false && !anime.title.contains("Dub") {
+                            return Some(anime);
+                        }
+                    } else {
                         return Some(anime);
                     }
                 }

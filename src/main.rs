@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use std::{env, fs};
 
+use dojang::Dojang;
 use dotenv::dotenv;
 
 use choki::structs::*;
@@ -11,9 +12,10 @@ use choki::*;
 use mongodb::Database;
 use reqwest;
 use scrapers::{anime_schedule, gogoanime};
+use serde_json::json;
 use threadpool::ThreadPool;
 use utils::http;
-use utils::types::IdType;
+use utils::types::{Anime, IdType};
 
 mod caching;
 mod scrapers;
@@ -70,9 +72,25 @@ fn main() {
         .unwrap();
     server
         .get(
-            "/[id]".to_string(),
+            "/watch/[id]/[ep_num]".to_string(),
             |mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>| {
-                let data = fs::read_to_string("./ui/index.html").unwrap();
+                let mut dojang = Dojang::new();
+                assert!(dojang.load("./ui").is_ok());
+
+                let id = req.params.get("id").unwrap();
+                let ep_num = req.params.get("ep_num").unwrap();
+
+                let anime = database
+                    .unwrap()
+                    .get_anime_id(id, &IdType::KartofPlay, false)
+                    .unwrap_or(Anime::new());
+
+                let url = scrapers::gogoanime::anime_streaming_url::get(
+                    &(anime.gogo_id.to_string() + "-episode-" + ep_num),
+                )
+                .unwrap_or_default();
+
+                let data = dojang.render("player.html", json!({"url": url})).unwrap();
                 res.set_header(&Header::new(
                     "Access-Control-Allow-Origin".to_string(),
                     "*".to_string(),
