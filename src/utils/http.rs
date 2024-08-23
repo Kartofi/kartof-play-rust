@@ -49,8 +49,8 @@ fn init_rate_limiter() {
     let now = Instant::now();
     let elapsed = now.duration_since(limiter_guard.last_request);
 
-    if elapsed < Duration::from_secs(3) {
-        let sleep_duration = Duration::from_secs(3) - elapsed;
+    if elapsed < HTTP_FREQUENCY_TIMEOUT {
+        let sleep_duration = HTTP_FREQUENCY_TIMEOUT - elapsed;
         thread::sleep(sleep_duration);
     }
 
