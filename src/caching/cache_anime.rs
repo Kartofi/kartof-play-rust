@@ -25,10 +25,11 @@ use crate::utils;
 
 impl Database {
     pub fn cache_anime(&self, id: &str, id_type: IdType) -> mongodb::error::Result<CacheResult> {
-        let found = self.get_anime_id(id, &id_type,id.contains("dub"));
+        let found = self.get_anime_id(id, &id_type, id.contains("dub"));
         if found.is_none() {
             match id_type {
-                IdType::Gogoanime => self.create_new(id),
+                IdType::Gogoanime | IdType::AnimeGG => self.create_new(id, id_type),
+
                 _default => Ok(CacheResult::new("The id should be gogoanime.", true)),
             }
         } else {
@@ -40,105 +41,118 @@ impl Database {
             }
         }
     }
-    ///Cache new Anime using only gogoanime id
-    fn create_new(&self, gogo_id: &str) -> mongodb::error::Result<CacheResult> {
+    ///Cache new Anime using only gogoanime id or animegg id
+    fn create_new(&self, id: &str, id_type: IdType) -> mongodb::error::Result<CacheResult> {
         let mut anime = Anime::new();
 
-        let gogoanime_data_result = scrapers::gogoanime::anime_details::get(gogo_id);
-        if gogoanime_data_result.is_err() {
+        let details_result = if id_type == IdType::Gogoanime {
+            scrapers::gogoanime::anime_details::get(id)
+        } else {
+            scrapers::animegg::anime_details::get(id)
+        };
+        if details_result.is_err() {
             return Ok(CacheResult::new("Invalid id!", true));
         }
-        let gogoanime_details = gogoanime_data_result.unwrap();
+        let details = details_result.unwrap();
 
         anime.id = utils::generate_id().to_string();
+        if id_type == IdType::Gogoanime {
+            anime.gogo_id = id.to_string();
+        } else {
+            anime.animegg_id = id.to_string();
+        }
 
-        anime.gogo_id = gogo_id.to_string();
+        anime.details = details.clone();
+        anime.details.id = Some(id.to_string());
 
-        anime.details = gogoanime_details.clone();
-        anime.details.id = Some(gogo_id.to_string());
+        anime.title = details.title.unwrap_or_default();
 
-        anime.title = gogoanime_details.title.unwrap_or_default();
-
-        let mut episodes: Vec<Episode> =
-            cache_episodes_gogo(&gogoanime_details.movie_id.unwrap_or_default());
-
-        anime.details.episodes = episodes.len() as u32;
-
-        let episodes = Arc::new(Mutex::new(episodes));
+        let episodes: Arc<Mutex<Vec<Episode>>> = Arc::new(Mutex::new(Vec::new()));
+        if id_type == IdType::Gogoanime {
+            cache_episodes_gogo(&details.movie_id.unwrap_or_default(), &episodes);
+        } else {
+            cache_episodes_animegg(&id, &episodes);
+        }
+        anime.details.episodes = episodes.lock().unwrap().len() as u32;
 
         let title = anime.title.clone();
 
-        //Search animeGG and get id
-        let animegg_search = scrapers::animegg::anime_search::get(&title).unwrap_or_default();
+        if id_type == IdType::Gogoanime {
+            //Search animeGG and get id
+            let animegg_search = scrapers::animegg::anime_search::get(&title).unwrap_or_default();
 
-        if animegg_search.len() > 0 {
-            let mut result_anime = AnimeDetails::new();
-            let mut found = false;
-            for anime_res in animegg_search {
-                if anime_res.episodes.abs_diff(anime.details.episodes) <= anime.details.episodes / 2
-                {
-                    found = true;
-                    result_anime = anime_res;
-                    break;
+            if animegg_search.len() > 0 {
+                let mut result_anime = AnimeDetails::new();
+                let mut found = false;
+                for anime_res in animegg_search {
+                    if anime_res.episodes.abs_diff(anime.details.episodes)
+                        <= anime.details.episodes / 2
+                    {
+                        found = true;
+                        result_anime = anime_res;
+                        break;
+                    }
+                }
+
+                if found == true {
+                    anime.animegg_id = result_anime.id.unwrap_or_default();
+
+                    if anime.details.other_names.len() == 0 {
+                        anime.details.other_names = result_anime.other_names;
+                    }
+                    if result_anime.episodes > anime.details.episodes
+                        && result_anime.episodes - anime.details.episodes < 5
+                    {
+                        anime.details.episodes = result_anime.episodes;
+                    }
+
+                    anime.details.released = result_anime.released;
+
+                    cache_episodes_animegg(&anime.animegg_id, &episodes);
                 }
             }
 
-            if found == true {
-                anime.animegg_id = result_anime.id.unwrap_or_default();
+            anime.episodes = episodes.lock().unwrap().to_vec();
+            anime.episodes.sort_by(|a, b| compare(&a.num, &b.num));
+        } else {
+            //Search GoGoAnime and get id
+            let gogo_search = scrapers::gogoanime::anime_search::get(&title).unwrap_or_default();
 
-                if anime.details.other_names.len() == 0 {
-                    anime.details.other_names = result_anime.other_names;
+            if gogo_search.len() > 0 {
+                let mut result_anime = AnimeDetails::new();
+                let mut found = false;
+                for anime_res in gogo_search {
+                    if anime_res.episodes.abs_diff(anime.details.episodes)
+                        <= anime.details.episodes / 2
+                    {
+                        found = true;
+                        result_anime = anime_res;
+                        break;
+                    }
                 }
-                if result_anime.episodes > anime.details.episodes
-                    && result_anime.episodes - anime.details.episodes < 5
-                {
-                    anime.details.episodes = result_anime.episodes;
+
+                if found == true {
+                    anime.gogo_id = result_anime.id.unwrap_or_default();
+
+                    if anime.details.other_names.len() == 0 {
+                        anime.details.other_names = result_anime.other_names;
+                    }
+                    if result_anime.episodes > anime.details.episodes
+                        && result_anime.episodes - anime.details.episodes < 5
+                    {
+                        anime.details.episodes = result_anime.episodes;
+                    }
+
+                    anime.details.released = result_anime.released;
+
+                    cache_episodes_gogo(&anime.animegg_id, &episodes);
                 }
-
-                anime.details.released = result_anime.released;
-
-                let mut episodes_animegg =
-                    scrapers::animegg::anime_details::get_episodes(&anime.animegg_id);
-
-                let mut thread_count = episodes_animegg.len();
-                if thread_count == 0 {
-                    thread_count = 1;
-                }
-                let pool = ThreadPool::new(thread_count);
-
-                episodes
-                    .lock()
-                    .unwrap()
-                    .sort_by(|a, b| compare(&a.num, &b.num));
-                for i in 0..episodes_animegg.len() {
-                    let clone = episodes.clone();
-                    let episodes_animegg = episodes_animegg.clone();
-                    pool.execute(move || {
-                        let mut episodes = clone.lock().unwrap();
-                        let ep = episodes.get_mut(i);
-                        if ep.is_none() {
-                            let mut episode = Episode::new();
-
-                            let ep_url = scrapers::animegg::anime_stream::get(&episodes_animegg[i])
-                                .unwrap_or_default();
-
-                            episode.animegg_url = ep_url;
-                            episode.num = episodes_animegg[i].clone();
-
-                            episodes.push(episode)
-                        } else {
-                            let ep_url = scrapers::animegg::anime_stream::get(&episodes_animegg[i])
-                                .unwrap_or_default();
-                            ep.unwrap().animegg_url = ep_url;
-                        }
-                    });
-                }
-                pool.join();
             }
+
+            anime.episodes = episodes.lock().unwrap().to_vec();
+            anime.episodes.sort_by(|a, b| compare(&a.num, &b.num));
         }
 
-        anime.episodes = episodes.lock().unwrap().to_vec();
-        anime.episodes.sort_by(|a, b| compare(&a.num, &b.num));
         // Mal data
         let mal_search = scrapers::mal::anime_search::get(&title).unwrap_or_default();
         if mal_search.len() > 0 {
@@ -188,6 +202,7 @@ impl Database {
 
         self.insert_new_anime(anime)
     }
+
     fn update_existing(&self, current: &mut Anime) -> mongodb::error::Result<CacheResult> {
         //rating episodes count and episodes
         let mut details = current.details.clone();
@@ -431,45 +446,80 @@ fn compare(a: &str, b: &str) -> Ordering {
     }
 }
 
-fn cache_episodes_gogo(movie_id: &str) -> Vec<Episode> {
-    let episodes: Vec<Episode> = Vec::new();
+fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
+    let mut episodes_gogo = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
 
-    let episodes_gogoanime = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
-
-    let mut thread_count = episodes_gogoanime.len();
-
+    let mut thread_count = episodes_gogo.len();
     if thread_count == 0 {
         thread_count = 1;
     }
     let pool = ThreadPool::new(thread_count);
 
-    let episodes = Arc::new(Mutex::new(episodes));
-
-    for ep_id in episodes_gogoanime {
+    episodes
+        .lock()
+        .unwrap()
+        .sort_by(|a, b| compare(&a.num, &b.num));
+    for i in 0..episodes_gogo.len() {
         let clone = episodes.clone();
+        let episodes_gogo = episodes_gogo.clone();
         pool.execute(move || {
-            if ep_id.len() != 0 {
+            let mut episodes = clone.lock().unwrap();
+            let ep = episodes.get_mut(i);
+            if ep.is_none() {
                 let mut episode = Episode::new();
-                if ep_id.contains("episode") == true {
-                    episode.num = ep_id
-                        .split("-episode-")
-                        .last()
-                        .unwrap_or_default()
-                        .to_string();
-                } else {
-                    episode.num = "0".to_string();
-                }
 
-                let stream_url = scrapers::gogoanime::anime_stream::get(&ep_id).unwrap_or_default();
-                if stream_url.is_empty() == false {
-                    episode.gogoanime_url = stream_url;
-                }
+                let ep_url =
+                    scrapers::gogoanime::anime_stream::get(&episodes_gogo[i]).unwrap_or_default();
 
-                let mut episodes = clone.lock().unwrap();
-                episodes.push(episode);
+                episode.gogoanime_url = ep_url;
+                episode.num = episodes_gogo[i].clone();
+
+                episodes.push(episode)
+            } else {
+                let ep_url =
+                    scrapers::gogoanime::anime_stream::get(&episodes_gogo[i]).unwrap_or_default();
+                ep.unwrap().gogoanime_url = ep_url;
             }
         });
     }
     pool.join();
-    return episodes.lock().unwrap().to_vec();
+}
+
+fn cache_episodes_animegg(id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
+    let mut episodes_animegg = scrapers::animegg::anime_details::get_episodes(&id);
+
+    let mut thread_count = episodes_animegg.len();
+    if thread_count == 0 {
+        thread_count = 1;
+    }
+    let pool = ThreadPool::new(thread_count);
+
+    episodes
+        .lock()
+        .unwrap()
+        .sort_by(|a, b| compare(&a.num, &b.num));
+    for i in 0..episodes_animegg.len() {
+        let clone = episodes.clone();
+        let episodes_animegg = episodes_animegg.clone();
+        pool.execute(move || {
+            let mut episodes = clone.lock().unwrap();
+            let ep = episodes.get_mut(i);
+            if ep.is_none() {
+                let mut episode = Episode::new();
+
+                let ep_url =
+                    scrapers::animegg::anime_stream::get(&episodes_animegg[i]).unwrap_or_default();
+
+                episode.animegg_url = ep_url;
+                episode.num = episodes_animegg[i].clone();
+
+                episodes.push(episode)
+            } else {
+                let ep_url =
+                    scrapers::animegg::anime_stream::get(&episodes_animegg[i]).unwrap_or_default();
+                ep.unwrap().animegg_url = ep_url;
+            }
+        });
+    }
+    pool.join();
 }

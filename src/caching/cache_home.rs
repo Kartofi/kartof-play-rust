@@ -57,6 +57,27 @@ impl Database {
             let id = &anime.id.unwrap_or_default();
             let anime_data_res = self.get_anime_id(id, &recent_type, id.contains("dub"));
             if anime_data_res.is_none() == true {
+                let result_cache = self.cache_anime(id, recent_type);
+                if result_cache.is_err() == true {
+                    continue;
+                }
+                if result_cache.unwrap().is_error == false {
+                    let anime_data_res = self.get_anime_id(id, &recent_type, id.contains("dub"));
+
+                    if anime_data_res.is_some() {
+                        let anime_data = anime_data_res.unwrap();
+
+                        result.push(AnimeRelease {
+                            id: Some(anime_data.id),
+                            title: Some(anime_data.title),
+                            episode_num: anime.episode_num,
+                            is_sub: anime.is_sub,
+                            is_out: true,
+                            cover_url: anime_data.details.cover_url,
+                            release_time: anime.release_time,
+                        })
+                    }
+                }
                 continue;
             }
             let anime_data = anime_data_res.unwrap();
@@ -76,14 +97,8 @@ impl Database {
     }
     fn get_popular(&self) -> mongodb::error::Result<(CacheResult, Vec<AnimeDetails>)> {
         let mut popular: Vec<AnimeDetails> = Vec::new();
-        let mut popular_type = IdType::Gogoanime;
 
         popular = gogoanime::anime_popular::get("1").unwrap_or_default();
-
-        if popular.len() == 0 {
-            popular = Vec::new();
-            popular_type = IdType::AnimeGG;
-        }
 
         if popular.len() == 0 {
             return Ok((CacheResult::new("Empty sources", true), Vec::new()));
@@ -92,8 +107,9 @@ impl Database {
 
         for anime in popular {
             let id = &anime.id.unwrap_or_default();
-            let anime_data_res = self.get_anime_id(id, &popular_type, id.contains("dub"));
+            let anime_data_res = self.get_anime_id(id, &IdType::Gogoanime, id.contains("dub"));
             if anime_data_res.is_none() == true {
+                self.cache_anime(id, IdType::Gogoanime).unwrap();
                 continue;
             }
             let anime_data = anime_data_res.unwrap();

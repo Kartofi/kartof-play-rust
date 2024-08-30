@@ -145,7 +145,7 @@ impl CacheResult {
         }
     }
 }
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum IdType {
     KartofPlay,
     Gogoanime,

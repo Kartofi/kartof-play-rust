@@ -18,7 +18,8 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
     let mut dojang = Dojang::new();
     assert!(dojang.load("./ui").is_ok());
 
- 
+    let id = "naruto";
+    let ep_num = "1";
 
     let anime = database
         .unwrap()

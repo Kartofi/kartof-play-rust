@@ -49,6 +49,7 @@ fn main() {
     node_js::start(); // Setup node.js stuff
 
     let database = utils::mongodb::Database::new().unwrap();
+
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));
