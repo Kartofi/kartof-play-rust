@@ -153,3 +153,16 @@ pub enum IdType {
     AnimeSchedule,
     MAL,
 }
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Image {
+    pub id: String,
+    pub data: Vec<u8>,
+}
+impl Image {
+    pub fn new(id: &str, data: Vec<u8>) -> Image {
+        Image {
+            id: id.to_string(),
+            data: data,
+        }
+    }
+}

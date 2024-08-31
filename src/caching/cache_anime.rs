@@ -199,7 +199,8 @@ impl Database {
             }
         }
         anime.last_updated = utils::get_timestamp();
-
+        self.save_image(&anime.id, &anime.details.cover_url)
+            .unwrap();
         self.insert_new_anime(anime)
     }
 

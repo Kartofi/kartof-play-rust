@@ -1,4 +1,4 @@
-pub fn get_(url: &str) -> Option<String> {
+pub fn get(url: &str) -> Option<String> {
     match reqwest::blocking::get(url) {
         Ok(req) => match req.text() {
             Ok(text) => Some(text),
@@ -13,8 +13,22 @@ pub fn get_(url: &str) -> Option<String> {
         }
     }
 }
-
-use std::io::BufRead;
+pub fn get_bytes(url: &str) -> Option<Vec<u8>> {
+    match reqwest::blocking::get(url) {
+        Ok(req) => match req.bytes() {
+            Ok(text) => Some(text.to_vec()),
+            Err(_err) => {
+                println!("ERROR REQ URL: {}", url);
+                None
+            }
+        },
+        Err(_err) => {
+            println!("ERROR REQ URL: {}", url);
+            None
+        }
+    }
+}
+use std::io::{BufRead, Bytes, Read};
 use std::sync::{Arc, Mutex, Once};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -57,7 +71,7 @@ fn init_rate_limiter() {
     limiter_guard.last_request = Instant::now();
 }
 
-pub fn get(url: &str) -> Option<String> {
+pub fn get_proxy(url: &str) -> Option<String> {
     if url.contains("animeschedule.net") && url != "https://animeschedule.net/" {
         init_rate_limiter();
     }
