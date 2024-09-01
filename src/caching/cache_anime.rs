@@ -2,11 +2,13 @@ use std::cmp::Ordering;
 use std::default;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::thread;
 
 use crate::scrapers::mal;
 use crate::utils::get_timestamp;
 use crate::utils::http;
 
+use crate::utils::images;
 use crate::utils::mongodb::Database;
 use crate::utils::types::*;
 
@@ -199,8 +201,9 @@ impl Database {
             }
         }
         anime.last_updated = utils::get_timestamp();
-        self.save_image(&anime.id, &anime.details.cover_url)
-            .unwrap();
+
+        images::save_image(anime.id.clone(), anime.details.cover_url.clone());
+
         self.insert_new_anime(anime)
     }
 
@@ -208,6 +211,8 @@ impl Database {
         //rating episodes count and episodes
         let mut details = current.details.clone();
         let mut episodes = current.episodes.clone();
+
+        images::save_image(current.id.clone(), current.details.cover_url.clone());
         //Mal
         if current.mal_id.len() > 0 {
             let mal_data = scrapers::mal::anime_details::get(&current.mal_id);

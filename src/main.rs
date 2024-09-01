@@ -15,8 +15,8 @@ use routes::get_routes;
 use scrapers::{anime_schedule, gogoanime};
 use serde_json::json;
 use threadpool::ThreadPool;
-use utils::http;
 use utils::types::{Anime, IdType};
+use utils::{http, images};
 
 mod caching;
 mod routes;
@@ -44,12 +44,16 @@ pub static CACHE_ALL_ANIME_FREQUENCY: Duration = Duration::from_secs(604800); //
 pub static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(4);
 pub static HTTP_FREQUENCY_TIMEOUT: Duration = Duration::from_secs(2);
 
+pub static IMAGES_PATH: &str = "./images";
 fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
+    images::setup(); // Setup things for image host
 
     let database = utils::mongodb::Database::new().unwrap();
-
+    database
+        .cache_anime("1722187157367", IdType::KartofPlay)
+        .unwrap();
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));
@@ -57,6 +61,9 @@ fn main() {
     for route in routes {
         server.get(route.0, route.1).unwrap();
     }
+    server
+        .new_static("/images".to_string(), "./images".to_string())
+        .unwrap();
 
     server.listen(3000, None).unwrap();
     Server::<u8>::lock();

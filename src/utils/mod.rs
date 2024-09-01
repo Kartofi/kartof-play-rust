@@ -2,6 +2,7 @@ use chrono::{Datelike, Utc};
 use rand::Rng;
 
 pub mod http;
+pub mod images;
 pub mod mongodb;
 pub mod types;
 

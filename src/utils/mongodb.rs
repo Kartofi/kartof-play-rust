@@ -217,41 +217,4 @@ impl Database {
         col.update_one(filter, update, None).unwrap();
         Ok(CacheResult::new("No errors", false))
     }
-
-    pub fn save_image(&self, id: &str, url: &str) -> mongodb::error::Result<CacheResult> {
-        let database = self.client.database("Kartof-Play");
-
-        let col: Collection<Image> = database.collection("Images");
-
-        let result = col.find(doc! { "id": id}, None).unwrap();
-
-        let data = http::get_bytes(url);
-        if data.is_none() {
-            return Ok(CacheResult::new("Url is invalid!", true));
-        }
-        let image = Image::new(id, data.unwrap());
-
-        if result.count() == 0 {
-            col.insert_one(image, None).unwrap();
-        } else {
-            let bson_data = bson::to_bson(&image.data).unwrap();
-            col.update_one(doc! { "id": id}, doc! {"data": bson_data}, None)
-                .unwrap();
-        }
-        Ok(CacheResult::new("Saved image!", false))
-    }
-    pub fn get_image(&self, id: &str) -> mongodb::error::Result<Option<Image>> {
-        let database = self.client.database("Kartof-Play");
-
-        let col: Collection<Image> = database.collection("Images");
-
-        let result = col.find(doc! { "id": id}, None).unwrap();
-
-        let last = result.last();
-        if last.is_none() {
-            return Ok(None);
-        }
-        let image = last.unwrap().unwrap();
-        Ok(Some(image))
-    }
 }

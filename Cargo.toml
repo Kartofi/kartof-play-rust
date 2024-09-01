@@ -9,7 +9,7 @@ build = "build.rs"
 
 [dependencies]
 
-choki = "1.0.9"
+choki = "1.0.10"
 reqwest = { version = "=0.12.4", features = ["blocking"] }
 dojang = "0.1.6"
 visdom = "1.0.1"
