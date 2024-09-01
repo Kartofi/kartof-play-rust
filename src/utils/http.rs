@@ -33,6 +33,7 @@ use std::sync::{Arc, Mutex, Once};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use mongodb::Client;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use reqwest::header::USER_AGENT;
@@ -44,20 +45,49 @@ struct RequestRateLimiter {
     last_request: Instant,
 }
 
-static mut RATE_LIMITER: Option<Arc<Mutex<RequestRateLimiter>>> = None;
-static INIT: Once = Once::new();
+static mut RATE_LIMITER_ANIMEGG: Option<Arc<Mutex<RequestRateLimiter>>> = None;
+static mut RATE_LIMITER_ANIME_SCHEDULE: Option<Arc<Mutex<RequestRateLimiter>>> = None;
+static INIT_ANIMEGG: Once = Once::new();
+static INIT_ANIME_SCHEDULE: Once = Once::new();
 
-fn init_rate_limiter() {
-    INIT.call_once(|| {
+fn init_rate_limiter_animegg() {
+    INIT_ANIMEGG.call_once(|| {
         let limiter = RequestRateLimiter {
             last_request: Instant::now() - HTTP_FREQUENCY_TIMEOUT,
         };
         unsafe {
-            RATE_LIMITER = Some(Arc::new(Mutex::new(limiter)));
+            RATE_LIMITER_ANIMEGG = Some(Arc::new(Mutex::new(limiter)));
         }
     });
+}
+fn init_rate_limiter_anime_schedule() {
+    INIT_ANIME_SCHEDULE.call_once(|| {
+        let limiter = RequestRateLimiter {
+            last_request: Instant::now() - HTTP_FREQUENCY_TIMEOUT,
+        };
+        unsafe {
+            RATE_LIMITER_ANIME_SCHEDULE = Some(Arc::new(Mutex::new(limiter)));
+        }
+    });
+}
+fn cooldown_animegg(){
+    init_rate_limiter_animegg();
+    let limiter = unsafe { RATE_LIMITER_ANIMEGG.as_ref().unwrap().clone() };
+    let mut limiter_guard = limiter.lock().unwrap();
 
-    let limiter = unsafe { RATE_LIMITER.as_ref().unwrap().clone() };
+    let now = Instant::now();
+    let elapsed = now.duration_since(limiter_guard.last_request);
+
+    if elapsed < HTTP_FREQUENCY_TIMEOUT {
+        let sleep_duration = HTTP_FREQUENCY_TIMEOUT - elapsed;
+        thread::sleep(sleep_duration);
+    }
+
+    limiter_guard.last_request = Instant::now();
+}
+fn cooldown_anime_schedule(){
+    init_rate_limiter_animegg();
+    let limiter = unsafe { RATE_LIMITER_ANIMEGG.as_ref().unwrap().clone() };
     let mut limiter_guard = limiter.lock().unwrap();
 
     let now = Instant::now();
@@ -71,9 +101,13 @@ fn init_rate_limiter() {
     limiter_guard.last_request = Instant::now();
 }
 
-pub fn get_proxy(url: &str) -> Option<String> {
+
+pub fn get_(url: &str) -> Option<String> {
     if url.contains("animeschedule.net") && url != "https://animeschedule.net/" {
-        init_rate_limiter();
+        cooldown_anime_schedule();
+    }
+    else if url.contains("animegg.org") && url != "https://www.animegg.org/releases" {
+        cooldown_animegg();
     }
     // List of common User-Agent strings
     let user_agents = vec![
@@ -85,54 +119,28 @@ pub fn get_proxy(url: &str) -> Option<String> {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7; rv:91.0) Gecko/20100101 Firefox/91.0",
         // Add more user agents as needed
     ];
+   // Choose a random user agent
+   let user_agent = user_agents.choose(&mut thread_rng()).unwrap();
 
-    // Load proxies from file
-    let proxies = match load_proxies_from_file() {
-        Ok(proxies) => proxies,
-        Err(err) => {
-            println!("Failed to load proxies: {}", err);
-            return None;
-        }
-    };
+   // Create a client with the selected user agent and proxy
+   let client = reqwest::blocking::Client::new();
 
-    // Choose a random user agent
-    let user_agent = user_agents.choose(&mut thread_rng()).unwrap();
-
-    // Choose a random proxy
-    let proxy = proxies.choose(&mut thread_rng()).unwrap();
-
-    // Create a client with the selected user agent and proxy
-    let client = match Proxy::http(proxy) {
-        Ok(proxy) => reqwest::blocking::Client::builder()
-            .proxy(proxy)
-            .timeout(HTTP_REQUEST_TIMEOUT)
-            .build()
-            .unwrap(),
-        Err(_) => reqwest::blocking::Client::new(),
-    };
-
-    match client
-        .get(url)
-        .header(USER_AGENT, user_agent.to_string())
-        .send()
-    {
-        Ok(req) => match req.text() {
-            Ok(text) => Some(text),
-            Err(_err) => {
-                println!("ERROR REQ URL: {}", url);
-                None
-            }
-        },
-        Err(_err) => {
-            println!("ERROR REQ URL: {}", url);
-            None
-        }
-    }
+   match client
+       .get(url)
+       .header(USER_AGENT, user_agent.to_string())
+       .send()
+   {
+       Ok(req) => match req.text() {
+           Ok(text) => Some(text),
+           Err(_err) => {
+               println!("ERROR REQ URL: {}", url);
+               None
+           }
+       },
+       Err(_err) => {
+           println!("ERROR REQ URL: {}", url);
+           None
+       }
+   }
 }
 
-fn load_proxies_from_file() -> std::io::Result<Vec<String>> {
-    let file = std::fs::File::open("proxies.txt")?;
-    let reader = std::io::BufReader::new(file);
-    let proxies: Vec<String> = reader.lines().filter_map(Result::ok).collect();
-    Ok(proxies)
-}
