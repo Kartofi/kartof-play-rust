@@ -34,6 +34,10 @@ pub static MALURL: &str = "https://myanimelist.net/";
 pub static GOGOANIMEURL: &str = "https://gogoanime3.co/";
 pub static GOGOANIMEURL_AJAX: &str = "https://ajax.gogocdn.net/ajax/";
 
+pub static UPDATE_ALL_ANIME_THREADS: usize = 100;
+
+
+
 pub static CACHE_COUNTDOWN: i64 = 300; // 5 MINS
 
 pub static CACHE_HOME_FREQUENCY_NUM: i64 = 300; // 5 MINS
@@ -51,9 +55,7 @@ fn main() {
     images::setup(); // Setup things for image host
 
     let database = utils::mongodb::Database::new().unwrap();
-    database
-        .cache_anime("1722187157367", IdType::KartofPlay)
-        .unwrap();
+    
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));

@@ -8,6 +8,7 @@ use super::{
 };
 
 pub fn save_image(id: String, url: String) -> CacheResult {
+
     thread::spawn(move || {
         let data = http::get_bytes(&url);
         if data.is_none() {

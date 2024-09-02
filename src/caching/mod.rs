@@ -10,7 +10,7 @@ use crate::{
         mongodb::Database,
         types::{AnimeRelease, Home, IdType},
     },
-    CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM,
+    CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM, UPDATE_ALL_ANIME_THREADS,
 };
 
 pub mod cache_anime;
@@ -42,7 +42,7 @@ fn update_all_animes_task(database: Database) {
     });
 }
 fn update_all_animes(database: &Arc<Database>) {
-    let po = ThreadPool::new(100);
+    let po = ThreadPool::new(UPDATE_ALL_ANIME_THREADS);
     let arc: Arc<Database> = Arc::clone(database);
     for i in 0..100 {
         let arc_clone = arc.clone();
