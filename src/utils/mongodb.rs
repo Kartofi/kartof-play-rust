@@ -1,3 +1,5 @@
+use std::thread;
+
 use mongodb::{
     bson::{self, doc, Regex},
     options::{FindOptions, IndexOptions},
@@ -5,8 +7,13 @@ use mongodb::{
     IndexModel,
 };
 use serde::{Deserialize, Serialize};
+use threadpool::ThreadPool;
 
-use super::{get_timestamp, http, types::*};
+
+
+use crate::CACHE_SLEEP;
+
+use super::{get_timestamp, http, images, types::*};
 #[derive(Debug, Clone)]
 pub struct Database {
     client: Client,
@@ -217,4 +224,49 @@ impl Database {
         col.update_one(filter, update, None).unwrap();
         Ok(CacheResult::new("No errors", false))
     }
+
+    pub fn cache_all_images(&self) -> mongodb::error::Result<CacheResult>{
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<Anime> = database.collection("Animes");
+
+        let cursor_res = col.find(None, None);
+        if cursor_res.is_err() {
+            return Ok(CacheResult::new("No animes found! Weird....", true));
+        }
+        let cursor = cursor_res.unwrap();
+       
+        let pool = ThreadPool::new(2);
+
+        let mut second = false;
+
+        let mut current_image = 0;
+       
+        for anime in cursor{
+            if anime.is_err(){
+                continue;
+            }
+            let anime = anime.unwrap();
+            pool.execute(move || {
+                images::save_image(anime.id.clone(), anime.details.cover_url);
+                
+            });
+            if second ==true{
+                second = false;
+                pool.join();
+                thread::sleep(CACHE_SLEEP);
+            }else {
+                second = true;
+                current_image += 2;
+                if current_image % 100 == 0 {
+                    println!("Image Caching. Saved {} images!", current_image);
+                 
+                }
+                
+            }
+        }
+        pool.join();
+        Ok(CacheResult::new("Succesufully saved all images", false))
+    }
+
 }

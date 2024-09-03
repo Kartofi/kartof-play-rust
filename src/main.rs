@@ -49,6 +49,9 @@ pub static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(4);
 pub static HTTP_FREQUENCY_TIMEOUT: Duration = Duration::from_secs(2);
 
 pub static IMAGES_PATH: &str = "./images";
+pub static CACHE_SLEEP: Duration = Duration::from_millis(100);
+pub static REPORT_COUNT: usize = 100;
+
 fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
@@ -63,9 +66,7 @@ fn main() {
     for route in routes {
         server.get(route.0, route.1).unwrap();
     }
-    server
-        .new_static("/images".to_string(), "./images".to_string())
-        .unwrap();
+   
 
     server.listen(3000, None).unwrap();
     Server::<u8>::lock();

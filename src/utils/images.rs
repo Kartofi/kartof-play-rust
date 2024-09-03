@@ -8,7 +8,9 @@ use super::{
 };
 
 pub fn save_image(id: String, url: String) -> CacheResult {
-
+    if get_image(&id).is_some(){
+        return CacheResult::new("Image already exists!", true);
+    }
     thread::spawn(move || {
         let data = http::get_bytes(&url);
         if data.is_none() {

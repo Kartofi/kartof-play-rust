@@ -4,21 +4,23 @@ use chrono::Utc;
 use threadpool::ThreadPool;
 
 use crate::{
-    scrapers,
-    utils::{
+    scrapers, utils::{
         get_date_string, get_timestamp,
         mongodb::Database,
         types::{AnimeRelease, Home, IdType},
-    },
-    CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM, UPDATE_ALL_ANIME_THREADS,
+    }, CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM, CACHE_SLEEP, UPDATE_ALL_ANIME_THREADS
 };
 
 pub mod cache_anime;
 
 pub mod cache_home;
 
+
+
 pub fn start(database: Database) {
     let database_clone = database.clone();
+    let database_clone2 = database.clone();
+
     println!(
         "Starting home caching task. Every {} seconds.",
         CACHE_HOME_FREQUENCY.as_secs()
@@ -29,6 +31,17 @@ pub fn start(database: Database) {
         CACHE_ALL_ANIME_FREQUENCY.as_secs() / (24 * 60 * 60)
     );
     update_all_animes_task(database_clone);
+
+    println!(
+        "Caching all images"
+    );
+    cache_all_images(database_clone2);
+}
+fn cache_all_images(database: Database){
+thread::spawn(move ||{
+    database.cache_all_images().unwrap();
+    println!("Done caching all images!");
+});
 }
 fn update_all_animes_task(database: Database) {
     thread::spawn(move || {
@@ -48,12 +61,20 @@ fn update_all_animes(database: &Arc<Database>) {
         let arc_clone = arc.clone();
         let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
         println!("Caching all anime {}%", i);
+
+        let mut current_anime = 0;
+
         for anime in page1 {
             let clone = arc_clone.clone();
 
             po.execute(move || {
                 clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
             });
+            current_anime += 1;
+            if current_anime >= UPDATE_ALL_ANIME_THREADS{
+                po.join();
+                thread::sleep(CACHE_SLEEP);
+            }
         }
         po.join();
     }
