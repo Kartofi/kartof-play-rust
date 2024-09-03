@@ -220,9 +220,11 @@ impl Database {
         }
         update_doc.insert("last_updated", crate::utils::get_timestamp());
 
+        
         let update = doc! { "$set": update_doc };
         col.update_one(filter, update, None).unwrap();
         Ok(CacheResult::new("No errors", false))
+        
     }
 
     pub fn cache_all_images(&self) -> mongodb::error::Result<CacheResult>{

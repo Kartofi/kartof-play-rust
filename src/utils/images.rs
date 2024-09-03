@@ -1,4 +1,4 @@
-use std::{fs, path::Path, thread};
+use std::{fs::{self, copy, File}, io::{Read, Write}, path::Path, thread};
 
 use crate::IMAGES_PATH;
 
@@ -8,18 +8,16 @@ use super::{
 };
 
 pub fn save_image(id: String, url: String) -> CacheResult {
-    if get_image(&id).is_some(){
+    if image_exits(&id){
         return CacheResult::new("Image already exists!", true);
     }
     thread::spawn(move || {
-        let data = http::get_bytes(&url);
-        if data.is_none() {
+        let stream = http::get_stream(&url);
+        if stream.is_none() {
             return;
         }
 
-        let image = Image::new(&id, data.unwrap());
-
-        write_image(image);
+        write_image(&id,stream.unwrap());
     });
     CacheResult::new("Saved image!", false)
 }
@@ -47,9 +45,16 @@ fn get_image_local(id: &str) -> Image {
 
     Image::new(id, data)
 }
-fn write_image(image: Image) {
-    let path_str = IMAGES_PATH.to_owned() + "/" + &image.id + ".jpg";
+fn write_image(id: &str, mut stream: impl Read) {
+    let path_str = IMAGES_PATH.to_owned() + "/" + id + ".jpg";
     let path = Path::new(&path_str);
 
-    fs::write(path, image.data).unwrap();
+    let mut file = File::create(path).unwrap();
+    
+    let mut buffer  = [0; 1024];
+
+    while stream.read(&mut buffer).is_ok(){
+        file.write_all(&buffer).unwrap();
+    }
+
 }

@@ -2,7 +2,7 @@ extern crate urlencoding;
 
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use std::{env, fs};
+use std::{env, fs, thread};
 
 use dojang::Dojang;
 use dotenv::dotenv;
@@ -58,7 +58,8 @@ fn main() {
     images::setup(); // Setup things for image host
 
     let database = utils::mongodb::Database::new().unwrap();
-    
+   
+
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));

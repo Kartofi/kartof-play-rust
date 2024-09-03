@@ -13,15 +13,16 @@ pub fn get(url: &str) -> Option<String> {
         }
     }
 }
-pub fn get_bytes(url: &str) -> Option<Vec<u8>> {
+pub fn get_stream(url: &str) -> Option<impl Read> {
     match reqwest::blocking::get(url) {
-        Ok(req) => match req.bytes() {
-            Ok(text) => Some(text.to_vec()),
-            Err(_err) => {
+        Ok(mut response) => {
+            if response.status().is_success() {
+                Some(response)
+            } else {
                 println!("ERROR REQ URL: {}", url);
                 None
             }
-        },
+        }
         Err(_err) => {
             println!("ERROR REQ URL: {}", url);
             None
