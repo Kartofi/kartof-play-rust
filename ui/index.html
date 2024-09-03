@@ -5,5 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
   </head>
-  <body></body>
+  <body>
+    
+    <% for (i in range(length(schedule)) { %>
+      <a> <%= schedule[i].title %></a> <br>
+      <a> <%= schedule[i].episode_num %></a> <br>
+      <img src="/images/<%= schedule[i].id %>" <br>
+      <a> <%= schedule[i].is_out %></a> <br>
+      <% } %>
+  </body>
 </html>

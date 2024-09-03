@@ -60,7 +60,7 @@ fn main() {
     let database = utils::mongodb::Database::new().unwrap();
    
 
-    caching::start(database.clone());
+    //caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));
     let routes = get_routes();

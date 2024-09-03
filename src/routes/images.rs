@@ -21,7 +21,7 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
     if image.is_none() {
         res.send_code(404);
     } else {
-     
+        
         res.send_bytes(&image.unwrap().data, None);
     }
 }
