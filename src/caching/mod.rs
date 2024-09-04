@@ -34,9 +34,9 @@ pub fn start(database: Database) {
     update_all_animes_task(database_clone);
 
     println!("Caching all images");
-    cache_all_images(database_clone2);
+    cache_all_images_task(database_clone2);
 }
-fn cache_all_images(database: Database) {
+fn cache_all_images_task(database: Database) {
     thread::spawn(move || {
         database.cache_all_images().unwrap();
         println!("Done caching all images!");
@@ -52,31 +52,6 @@ fn update_all_animes_task(database: Database) {
             thread::sleep(SETTINGS.CACHE_ALL_ANIME_FREQUENCY);
         }
     });
-}
-fn update_all_animes(database: &Arc<Database>) {
-    let po = ThreadPool::new(SETTINGS.UPDATE_ALL_ANIME_THREADS);
-    let arc: Arc<Database> = Arc::clone(database);
-    for i in 0..100 {
-        let arc_clone = arc.clone();
-        let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
-        println!("Caching all anime {}%", i);
-
-        let mut current_anime = 0;
-
-        for anime in page1 {
-            let clone = arc_clone.clone();
-
-            po.execute(move || {
-                clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
-            });
-            current_anime += 1;
-            if current_anime >= SETTINGS.UPDATE_ALL_ANIME_THREADS {
-                po.join();
-                thread::sleep(SETTINGS.CACHE_SLEEP);
-            }
-        }
-        po.join();
-    }
 }
 
 fn cache_home_task(database: Database) {
@@ -108,6 +83,32 @@ fn cache_home_task(database: Database) {
             thread::sleep(SETTINGS.CACHE_HOME_FREQUENCY);
         }
     });
+}
+
+fn update_all_animes(database: &Arc<Database>) {
+    let po = ThreadPool::new(SETTINGS.UPDATE_ALL_ANIME_THREADS);
+    let arc: Arc<Database> = Arc::clone(database);
+    for i in 0..100 {
+        let arc_clone = arc.clone();
+        let page1 = scrapers::gogoanime::anime_list::get(&i.to_string()).unwrap_or_default();
+        println!("Caching all anime {}%", i);
+
+        let mut current_anime = 0;
+
+        for anime in page1 {
+            let clone = arc_clone.clone();
+
+            po.execute(move || {
+                clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
+            });
+            current_anime += 1;
+            if current_anime >= SETTINGS.UPDATE_ALL_ANIME_THREADS {
+                po.join();
+                thread::sleep(SETTINGS.CACHE_SLEEP);
+            }
+        }
+        po.join();
+    }
 }
 
 fn cache_animes(anime_ids: Vec<String>, database: Arc<Database>) {
