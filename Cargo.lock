@@ -1185,6 +1185,7 @@ dependencies = [
  "chrono-tz",
  "dojang",
  "dotenv",
+ "lazy_static",
  "mongodb",
  "rand",
  "regex",

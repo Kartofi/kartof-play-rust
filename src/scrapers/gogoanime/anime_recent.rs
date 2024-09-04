@@ -6,7 +6,7 @@ use visdom::Vis;
 
 pub fn get(page: &str) -> Result<Vec<AnimeRelease>, ScraperError> {
     let mut data: Vec<AnimeRelease> = Vec::new();
-    let url = crate::GOGOANIMEURL_AJAX.to_owned() + "page-recent-release.html?page=" + page;
+    let url = crate::SETTINGS.GOGOANIMEURL_AJAX.to_owned() + "page-recent-release.html?page=" + page;
     let response: Option<String> = http::get(&url);
 
     if response.is_none() == false {

@@ -16,7 +16,7 @@ use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
     let mut data: Vec<AnimeRelease> = Vec::new();
-    let url = crate::ANIMESCHEDULE.to_owned();
+    let url = crate::SETTINGS.ANIMESCHEDULE.to_owned();
     let response: Option<String> = http::get(&url);
 
     if response.is_none() == false {

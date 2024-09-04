@@ -13,7 +13,7 @@ use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get(id: &str, is_dub: bool) -> Result<AnimeDetails, ScraperError> {
     let mut data: AnimeDetails = AnimeDetails::new();
-    let url = crate::ANIMESCHEDULE.to_owned() + "anime/" + id;
+    let url = crate::SETTINGS.ANIMESCHEDULE.to_owned() + "anime/" + id;
     let response: Option<String> = http::get(&url);
 
     if response.is_none() == false {

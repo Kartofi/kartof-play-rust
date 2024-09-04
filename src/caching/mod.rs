@@ -1,21 +1,22 @@
-use std::{rc::Rc, sync::Arc, thread, time::Duration};
+use std::{ rc::Rc, sync::Arc, thread, time::Duration };
 
 use chrono::Utc;
 use threadpool::ThreadPool;
 
 use crate::{
-    scrapers, utils::{
-        get_date_string, get_timestamp,
+    scrapers,
+    utils::{
+        get_date_string,
+        get_timestamp,
         mongodb::Database,
-        types::{AnimeRelease, Home, IdType},
-    }, CACHE_ALL_ANIME_FREQUENCY, CACHE_HOME_FREQUENCY, CACHE_HOME_FREQUENCY_NUM, CACHE_SLEEP, UPDATE_ALL_ANIME_THREADS
+        types::{ AnimeRelease, Home, IdType },
+    },
+    SETTINGS,
 };
 
 pub mod cache_anime;
 
 pub mod cache_home;
-
-
 
 pub fn start(database: Database) {
     let database_clone = database.clone();
@@ -23,25 +24,23 @@ pub fn start(database: Database) {
 
     println!(
         "Starting home caching task. Every {} seconds.",
-        CACHE_HOME_FREQUENCY.as_secs()
+        SETTINGS.CACHE_HOME_FREQUENCY.as_secs()
     );
     cache_home_task(database);
     println!(
         "Starting all animes caching task. Every {} days.",
-        CACHE_ALL_ANIME_FREQUENCY.as_secs() / (24 * 60 * 60)
+        SETTINGS.CACHE_ALL_ANIME_FREQUENCY.as_secs() / (24 * 60 * 60)
     );
     update_all_animes_task(database_clone);
 
-    println!(
-        "Caching all images"
-    );
+    println!("Caching all images");
     cache_all_images(database_clone2);
 }
-fn cache_all_images(database: Database){
-thread::spawn(move ||{
-    database.cache_all_images().unwrap();
-    println!("Done caching all images!");
-});
+fn cache_all_images(database: Database) {
+    thread::spawn(move || {
+        database.cache_all_images().unwrap();
+        println!("Done caching all images!");
+    });
 }
 fn update_all_animes_task(database: Database) {
     thread::spawn(move || {
@@ -50,12 +49,12 @@ fn update_all_animes_task(database: Database) {
         loop {
             update_all_animes(&arc);
 
-            thread::sleep(CACHE_ALL_ANIME_FREQUENCY);
+            thread::sleep(SETTINGS.CACHE_ALL_ANIME_FREQUENCY);
         }
     });
 }
 fn update_all_animes(database: &Arc<Database>) {
-    let po = ThreadPool::new(UPDATE_ALL_ANIME_THREADS);
+    let po = ThreadPool::new(SETTINGS.UPDATE_ALL_ANIME_THREADS);
     let arc: Arc<Database> = Arc::clone(database);
     for i in 0..100 {
         let arc_clone = arc.clone();
@@ -71,9 +70,9 @@ fn update_all_animes(database: &Arc<Database>) {
                 clone.cache_anime(&anime, IdType::Gogoanime).unwrap();
             });
             current_anime += 1;
-            if current_anime >= UPDATE_ALL_ANIME_THREADS{
+            if current_anime >= SETTINGS.UPDATE_ALL_ANIME_THREADS {
                 po.join();
-                thread::sleep(CACHE_SLEEP);
+                thread::sleep(SETTINGS.CACHE_SLEEP);
             }
         }
         po.join();
@@ -86,11 +85,10 @@ fn cache_home_task(database: Database) {
         let mut last_updated = arc
             .get_home(&get_date_string())
             .unwrap_or(None)
-            .unwrap_or(Home::new())
-            .last_updated;
+            .unwrap_or(Home::new()).last_updated;
 
         loop {
-            if get_timestamp() - last_updated >= CACHE_HOME_FREQUENCY_NUM {
+            if get_timestamp() - last_updated >= SETTINGS.CACHE_HOME_FREQUENCY_NUM {
                 println!("Caching home.");
                 let new_home = arc.cache_home().unwrap().1;
 
@@ -107,7 +105,7 @@ fn cache_home_task(database: Database) {
                 println!("Done caching home.");
             }
 
-            thread::sleep(CACHE_HOME_FREQUENCY);
+            thread::sleep(SETTINGS.CACHE_HOME_FREQUENCY);
         }
     });
 }

@@ -6,7 +6,7 @@ use visdom::Vis;
 
 pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     let mut data: AnimeDetails = AnimeDetails::new();
-    let url = crate::ANIMEGG.to_owned() + "series/" + id;
+    let url = crate::SETTINGS.ANIMEGG.to_owned() + "series/" + id;
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
@@ -55,7 +55,7 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
 }
 pub fn get_episodes(id: &str) -> Vec<String> {
     let mut ids: Vec<String> = Vec::new();
-    let url = crate::ANIMEGG.to_owned() + "series/" + id;
+    let url = crate::SETTINGS.ANIMEGG.to_owned() + "series/" + id;
     let response = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {

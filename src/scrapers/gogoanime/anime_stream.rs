@@ -5,7 +5,7 @@ use visdom::types::Elements;
 use visdom::Vis;
 
 pub fn get(ep_id: &str) -> Result<String, ScraperError> {
-    let url = crate::GOGOANIMEURL.to_owned() + ep_id;
+    let url = crate::SETTINGS.GOGOANIMEURL.to_owned() + ep_id;
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {

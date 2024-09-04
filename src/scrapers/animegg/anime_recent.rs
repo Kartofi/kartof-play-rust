@@ -6,7 +6,7 @@ use visdom::Vis;
 
 pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
     let mut data: Vec<AnimeRelease> = Vec::new();
-    let url = crate::ANIMEGG.to_owned() + "releases/";
+    let url = crate::SETTINGS.ANIMEGG.to_owned() + "releases/";
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {

@@ -1,11 +1,12 @@
-use chrono::{Datelike, Utc};
+use chrono::{ Datelike, Utc };
 
 use crate::{
-    scrapers::{self, anime_schedule::anime_schedule, animegg, gogoanime},
+    scrapers::{ self, anime_schedule::anime_schedule, animegg, gogoanime },
     utils::{
-        get_date_string, get_timestamp,
+        get_date_string,
+        get_timestamp,
         mongodb::Database,
-        types::{Anime, AnimeDetails, AnimeRelease, CacheResult, Home, IdType},
+        types::{ Anime, AnimeDetails, AnimeRelease, CacheResult, Home, IdType },
     },
 };
 
@@ -16,9 +17,10 @@ impl Database {
         home.date = get_date_string();
 
         let search = self.get_home(&home.date).unwrap_or_default();
-        if search.is_some()
-            && get_timestamp() - search.as_ref().unwrap().last_updated
-                < crate::CACHE_HOME_FREQUENCY_NUM
+        if
+            search.is_some() &&
+            get_timestamp() - search.as_ref().unwrap().last_updated <
+                crate::SETTINGS.CACHE_HOME_FREQUENCY_NUM
         {
             return Ok((CacheResult::new("On cooldown!", true), Home::new()));
         }
@@ -75,7 +77,7 @@ impl Database {
                             is_out: true,
                             cover_url: anime_data.details.cover_url,
                             release_time: anime.release_time,
-                        })
+                        });
                     }
                 }
                 continue;
@@ -90,7 +92,7 @@ impl Database {
                 is_out: true,
                 cover_url: anime_data.details.cover_url,
                 release_time: anime.release_time,
-            })
+            });
         }
 
         Ok((CacheResult::new("No errors", false), result))
@@ -128,14 +130,15 @@ impl Database {
                 anime_data.details.released
             };
 
-            result.push(details)
+            result.push(details);
         }
 
         Ok((CacheResult::new("No errors", false), result))
     }
     fn get_schedule_today(&self) -> mongodb::error::Result<(CacheResult, Vec<AnimeRelease>)> {
-        let schedule: Vec<AnimeRelease> =
-            scrapers::anime_schedule::anime_schedule::get().unwrap_or_default();
+        let schedule: Vec<AnimeRelease> = scrapers::anime_schedule::anime_schedule
+            ::get()
+            .unwrap_or_default();
 
         if schedule.len() == 0 {
             return Ok((CacheResult::new("Empty sources", true), Vec::new()));
@@ -158,7 +161,7 @@ impl Database {
                 is_out: true,
                 cover_url: anime_data.details.cover_url,
                 release_time: anime.release_time,
-            })
+            });
         }
 
         Ok((CacheResult::new("No errors", false), result))

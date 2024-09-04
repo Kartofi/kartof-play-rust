@@ -20,7 +20,7 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
     let mut home = db.get_home(&utils::get_date_string()).unwrap_or_default();
 
     if home.is_none() {
-        home = Some(db.cache_home().unwrap().1);
+        home = db.get_home(&utils::get_yesterday_date_string()).unwrap_or_default();
     }
     if home.is_none() {
         res.send_code(404);

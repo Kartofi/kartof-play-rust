@@ -9,7 +9,7 @@ use visdom::Vis;
 
 pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     let mut data: AnimeDetails = AnimeDetails::new();
-    let url = crate::MALURL.to_owned() + "anime/" + id;
+    let url = crate::SETTINGS.MALURL.to_owned() + "anime/" + id;
     let response: Option<String> = http::get(&url);
 
     if response.is_none() == false {

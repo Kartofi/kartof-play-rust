@@ -1,0 +1,32 @@
+{
+  "ANIMESCHEDULE": "https://animeschedule.net/",
+  "ANIMEGG": "https://www.animegg.org/",
+  "MALURL": "https://myanimelist.net/",
+  "GOGOANIMEURL": "https://gogoanime3.co/",
+  "GOGOANIMEURL_AJAX": "https://ajax.gogocdn.net/ajax/",
+  "UPDATE_ALL_ANIME_THREADS": 100,
+  "CACHE_COUNTDOWN": 300,
+  "CACHE_HOME_FREQUENCY_NUM": 300,
+  "CACHE_HOME_FREQUENCY": {
+    "secs": 300,
+    "nanos": 0
+  },
+  "CACHE_ALL_ANIME_FREQUENCY": {
+    "secs": 604800,
+    "nanos": 0
+  },
+  "HTTP_REQUEST_TIMEOUT": {
+    "secs": 4,
+    "nanos": 0
+  },
+  "HTTP_FREQUENCY_TIMEOUT": {
+    "secs": 2,
+    "nanos": 0
+  },
+  "IMAGES_PATH": "./images",
+  "CACHE_SLEEP": {
+    "secs": 0,
+    "nanos": 100000000
+  },
+  "REPORT_COUNT": 100
+}

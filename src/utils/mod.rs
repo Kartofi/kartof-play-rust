@@ -1,10 +1,12 @@
-use chrono::{Datelike, Utc};
+use chrono::{ Datelike, Utc };
 use rand::Rng;
 
 pub mod http;
 pub mod images;
 pub mod mongodb;
 pub mod types;
+
+pub mod settings;
 
 pub fn get_timestamp() -> i64 {
     let current_timestamp = Utc::now();
@@ -15,6 +17,15 @@ pub fn get_date_string() -> String {
     format!(
         "{}:{}:{}",
         current_timestamp.day(),
+        current_timestamp.month(),
+        current_timestamp.year()
+    )
+}
+pub fn get_yesterday_date_string() -> String {
+    let current_timestamp = Utc::now();
+    format!(
+        "{}:{}:{}",
+        current_timestamp.day() - 1,
         current_timestamp.month(),
         current_timestamp.year()
     )

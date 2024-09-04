@@ -6,7 +6,7 @@ use visdom::Vis;
 
 pub fn get(ep_id: &str) -> Result<String, ScraperError> {
     let mut data: String = "/error".to_string();
-    let url = crate::ANIMEGG.to_owned() + ep_id;
+    let url = crate::SETTINGS.ANIMEGG.to_owned() + ep_id;
 
     let response: Option<String> = http::get(&url);
     if response.is_none() == false {
@@ -15,7 +15,7 @@ pub fn get(ep_id: &str) -> Result<String, ScraperError> {
                 let source = root.find("iframe.video");
                 if source.is_empty() == false {
                     if source.has_attr("src") {
-                        data = crate::ANIMEGG.to_owned()
+                        data = crate::SETTINGS.ANIMEGG.to_owned()
                             + &source
                                 .attr("src")
                                 .unwrap()

@@ -1,19 +1,17 @@
 use std::thread;
 
 use mongodb::{
-    bson::{self, doc, Regex},
-    options::{FindOptions, IndexOptions},
-    sync::{Client, Collection, Cursor},
+    bson::{ self, doc, Regex },
+    options::{ FindOptions, IndexOptions },
+    sync::{ Client, Collection, Cursor },
     IndexModel,
 };
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 use threadpool::ThreadPool;
 
+use crate::SETTINGS;
 
-
-use crate::CACHE_SLEEP;
-
-use super::{get_timestamp, http, images, types::*};
+use super::{ get_timestamp, http, images, types::* };
 #[derive(Debug, Clone)]
 pub struct Database {
     client: Client,
@@ -30,7 +28,7 @@ impl Database {
     pub fn update_home(
         &self,
         mut data: Home,
-        search: Option<Home>,
+        search: Option<Home>
     ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
@@ -40,7 +38,7 @@ impl Database {
             data.last_updated = get_timestamp();
             col.insert_one(data, None)?;
         } else {
-            let filter = doc! {"date": &data.date};
+            let filter = doc! { "date": &data.date };
 
             let mut update = doc! {};
 
@@ -60,7 +58,7 @@ impl Database {
             }
 
             update.insert("last_updated", get_timestamp());
-            col.update_one(filter, doc! { "$set": update}, None)?;
+            col.update_one(filter, doc! { "$set": update }, None)?;
         }
         Ok(CacheResult::new("", false))
     }
@@ -69,7 +67,7 @@ impl Database {
 
         let col: Collection<Home> = database.collection("Home");
 
-        let filter = doc! {"date": date};
+        let filter = doc! { "date": date };
 
         let cursor = col.find(filter, None)?;
         let mut cursor_peekable = cursor.peekable();
@@ -85,7 +83,7 @@ impl Database {
         &self,
         title: &str,
         max_results: usize,
-        page: usize,
+        page: usize
     ) -> mongodb::error::Result<Vec<Anime>> {
         let database = self.client.database("Kartof-Play");
 
@@ -93,7 +91,8 @@ impl Database {
 
         let title = &title.replace("+", " ");
 
-        let filter = doc! {
+        let filter =
+            doc! {
             "$text": {
                 "$search": title,
                 "$caseSensitive": false
@@ -149,7 +148,7 @@ impl Database {
 
         let col: Collection<Anime> = database.collection("Animes");
 
-        let filter = doc! {name_id: id };
+        let filter = doc! { name_id: id };
 
         // Search for Anime documents matching the filter
         let cursor: Cursor<Anime> = col.find(filter, None).unwrap();
@@ -187,7 +186,7 @@ impl Database {
         episodes: Option<Vec<Episode>>,
         animegg_id: Option<&str>,
         mal_id: Option<&str>,
-        schedule_id: Option<&str>,
+        schedule_id: Option<&str>
     ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
@@ -220,14 +219,12 @@ impl Database {
         }
         update_doc.insert("last_updated", crate::utils::get_timestamp());
 
-        
         let update = doc! { "$set": update_doc };
         col.update_one(filter, update, None).unwrap();
         Ok(CacheResult::new("No errors", false))
-        
     }
 
-    pub fn cache_all_images(&self) -> mongodb::error::Result<CacheResult>{
+    pub fn cache_all_images(&self) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
         let col: Collection<Anime> = database.collection("Animes");
@@ -237,38 +234,34 @@ impl Database {
             return Ok(CacheResult::new("No animes found! Weird....", true));
         }
         let cursor = cursor_res.unwrap();
-       
+
         let pool = ThreadPool::new(2);
 
         let mut second = false;
 
         let mut current_image = 0;
-       
-        for anime in cursor{
-            if anime.is_err(){
+
+        for anime in cursor {
+            if anime.is_err() {
                 continue;
             }
             let anime = anime.unwrap();
             pool.execute(move || {
                 images::save_image(anime.id.clone(), anime.details.cover_url);
-                
             });
-            if second ==true{
+            if second == true {
                 second = false;
                 pool.join();
-                thread::sleep(CACHE_SLEEP);
-            }else {
+                thread::sleep(SETTINGS.CACHE_SLEEP);
+            } else {
                 second = true;
                 current_image += 2;
                 if current_image % 100 == 0 {
                     println!("Image Caching. Saved {} images!", current_image);
-                 
                 }
-                
             }
         }
         pool.join();
         Ok(CacheResult::new("Succesufully saved all images", false))
     }
-
 }
