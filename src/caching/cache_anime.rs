@@ -75,6 +75,8 @@ impl Database {
         } else {
             cache_episodes_animegg(&id, &episodes);
         }
+        anime.episodes.sort_by(|a, b| compare(&a.num, &b.num));
+
         anime.details.episodes = episodes.lock().unwrap().len() as u32;
 
         let title = anime.title.clone();
@@ -218,6 +220,7 @@ impl Database {
         //rating episodes count and episodes
         let mut details = current.details.clone();
         let mut episodes = current.episodes.clone();
+        episodes.sort_by(|a, b| compare(&a.num, &b.num));
 
         images::save_image(current.id.clone(), current.details.cover_url.clone());
         //Mal
@@ -482,7 +485,7 @@ fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
                     .unwrap_or_default();
 
                 episode.gogoanime_url = ep_url;
-                episode.num = episodes_gogo[i].clone();
+                episode.num = episodes_gogo[i].split("-episode-").nth(1).unwrap().to_owned();
 
                 episodes.push(episode)
             } else {
@@ -523,7 +526,7 @@ fn cache_episodes_animegg(id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
                     .unwrap_or_default();
 
                 episode.animegg_url = ep_url;
-                episode.num = episodes_animegg[i].clone();
+                episode.num = episodes_animegg[i].split("-episode-").nth(1).unwrap().to_owned();
 
                 episodes.push(episode)
             } else {

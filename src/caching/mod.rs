@@ -6,6 +6,7 @@ use threadpool::ThreadPool;
 use crate::{
     scrapers,
     utils::{
+        caching_info::CachingInfo,
         get_date_string,
         get_timestamp,
         mongodb::Database,
@@ -47,9 +48,15 @@ fn update_all_animes_task(database: Database) {
         let arc = Arc::from(database);
 
         loop {
-            update_all_animes(&arc);
+            if
+                get_timestamp() - CachingInfo::get_time() >=
+                (SETTINGS.CACHE_ALL_ANIME_FREQUENCY.as_secs() as i64)
+            {
+                CachingInfo::update_time();
+                update_all_animes(&arc);
+            }
 
-            thread::sleep(SETTINGS.CACHE_ALL_ANIME_FREQUENCY);
+            thread::sleep(Duration::from_secs(100));
         }
     });
 }
@@ -80,7 +87,7 @@ fn cache_home_task(database: Database) {
                 println!("Done caching home.");
             }
 
-            thread::sleep(SETTINGS.CACHE_HOME_FREQUENCY);
+            thread::sleep(Duration::from_secs(100));
         }
     });
 }
