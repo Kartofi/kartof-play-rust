@@ -158,7 +158,7 @@ impl Database {
                 title: Some(anime_data.title),
                 episode_num: anime.episode_num,
                 is_sub: anime.is_sub,
-                is_out: true,
+                is_out: anime.is_out,
                 cover_url: anime_data.details.cover_url,
                 release_time: anime.release_time,
             });

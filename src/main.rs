@@ -38,6 +38,8 @@ fn main() {
     node_js::start(); // Setup node.js stuff
     images::setup(); // Setup things for image host
 
+    println!("{:?}", scrapers::anime_schedule::anime_schedule::get().unwrap()[1]);
+
     let database = utils::mongodb::Database::new().unwrap();
 
     caching::start(database.clone());
