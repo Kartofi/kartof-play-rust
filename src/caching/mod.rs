@@ -34,13 +34,26 @@ pub fn start(database: Database) {
     );
     update_all_animes_task(database_clone);
 
-    println!("Caching all images");
+    println!(
+        "Statring all images caching task. Every {} days.",
+        SETTINGS.CACHE_ALL_IMAGES_FREQUENCY.as_secs() / (24 * 60 * 60)
+    );
     cache_all_images_task(database_clone2);
 }
 fn cache_all_images_task(database: Database) {
     thread::spawn(move || {
-        database.cache_all_images().unwrap();
-        println!("Done caching all images!");
+        loop {
+            if
+                get_timestamp() - CachingInfo::get_all_images_time() >=
+                (SETTINGS.CACHE_ALL_IMAGES_FREQUENCY.as_secs() as i64)
+            {
+                CachingInfo::update_time();
+                println!("Started caching all images!");
+                database.cache_all_images().unwrap();
+                println!("Done caching all images!");
+            }
+            thread::sleep(Duration::from_secs(100));
+        }
     });
 }
 fn update_all_animes_task(database: Database) {
@@ -49,7 +62,7 @@ fn update_all_animes_task(database: Database) {
 
         loop {
             if
-                get_timestamp() - CachingInfo::get_time() >=
+                get_timestamp() - CachingInfo::get_all_anime_time() >=
                 (SETTINGS.CACHE_ALL_ANIME_FREQUENCY.as_secs() as i64)
             {
                 CachingInfo::update_time();

@@ -22,6 +22,7 @@ pub struct Settings {
     pub CACHE_HOME_FREQUENCY: Duration, // 5 MINS
 
     pub CACHE_ALL_ANIME_FREQUENCY: Duration, // 7 Days
+    pub CACHE_ALL_IMAGES_FREQUENCY: Duration, // 7 Days
 
     pub HTTP_REQUEST_TIMEOUT: Duration,
     pub HTTP_FREQUENCY_TIMEOUT: Duration,
@@ -48,6 +49,7 @@ impl Settings {
             CACHE_HOME_FREQUENCY: Duration::from_secs(300), // 5 MINS
 
             CACHE_ALL_ANIME_FREQUENCY: Duration::from_secs(604800), // 7 Days
+            CACHE_ALL_IMAGES_FREQUENCY: Duration::from_secs(259200), // 3 Days
 
             HTTP_REQUEST_TIMEOUT: Duration::from_secs(4),
             HTTP_FREQUENCY_TIMEOUT: Duration::from_secs(2),

@@ -6,13 +6,15 @@ use super::get_timestamp;
 
 #[derive(Serialize, Deserialize)]
 pub struct CachingInfo {
-    last_all_anime_cache: i64, // 5 MINS
+    last_all_anime_cache: i64, 
+    last_all_images_cache: i64, 
 }
 
 impl CachingInfo {
     pub fn default() -> CachingInfo {
         CachingInfo {
             last_all_anime_cache: get_timestamp(),
+            last_all_images_cache: get_timestamp(),
         }
     }
     pub fn from_file(path: &str) -> CachingInfo {
@@ -27,8 +29,11 @@ impl CachingInfo {
         let string_data = serde_json::to_string_pretty(&CachingInfo::default()).unwrap();
         fs::write("./caching_info.json", string_data).unwrap();
     }
-    pub fn get_time() -> i64 {
+    pub fn get_all_anime_time() -> i64 {
         return Self::from_file("./caching_info.json").last_all_anime_cache;
+    }
+    pub fn get_all_images_time() -> i64 {
+        return Self::from_file("./caching_info.json").last_all_images_cache;
     }
     fn exits() -> bool {
         Path::new("./caching_info.json").exists()

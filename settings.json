@@ -15,6 +15,10 @@
     "secs": 604800,
     "nanos": 0
   },
+  "CACHE_ALL_IMAGES_FREQUENCY":{
+    "secs": 259200,
+    "nanos": 0
+  },
   "HTTP_REQUEST_TIMEOUT": {
     "secs": 4,
     "nanos": 0
