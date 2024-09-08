@@ -414,9 +414,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "choki"
-version = "1.0.10"
+version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7122175425b846646e3e676d4b130c7069264f362679a7cd270717fc3f1e3af"
+checksum = "34ca9fe6b0a433667e83d2d22075bc3955acb005a3973199e56fbf9ae9a09c94"
 dependencies = [
  "num_cpus",
  "threadpool",
