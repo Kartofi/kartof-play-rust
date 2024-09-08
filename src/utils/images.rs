@@ -42,15 +42,15 @@ fn get_image_local(id: &str) -> Image {
 
     Image::new(id, data)
 }
+
 fn write_image(id: &str, mut stream: impl Read) {
     let path_str = SETTINGS.IMAGES_PATH.to_owned() + "/" + id + ".jpg";
     let path = Path::new(&path_str);
 
     let mut file = File::create(path).unwrap();
 
-    let mut buffer = [0; 1024];
+    let mut buff: Vec<u8> = Vec::new();
+    stream.read_to_end(&mut buff).unwrap();
 
-    while stream.read(&mut buffer).is_ok() {
-        file.write_all(&buffer).unwrap();
-    }
+    file.write_all(&buff).unwrap();
 }

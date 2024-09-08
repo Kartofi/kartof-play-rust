@@ -15,25 +15,25 @@ pub fn get(ep_id: &str) -> Result<String, ScraperError> {
                 let source = root.find("iframe.video");
                 if source.is_empty() == false {
                     if source.has_attr("src") {
-                        data = crate::SETTINGS.ANIMEGG.to_owned()
-                            + &source
-                                .attr("src")
-                                .unwrap()
-                                .to_string()
-                                .replace("/embed", "embed");
+                        data =
+                            crate::SETTINGS.ANIMEGG.to_owned() +
+                            &source.attr("src").unwrap().to_string().replace("/embed", "embed");
                     }
                 }
             }
             Err(err) => {
                 return Err(ScraperError {
                     reason: "Error Parsing page".to_owned(),
-                })
+                });
             }
         }
     } else {
         return Err(ScraperError {
             reason: "Failed to make http request".to_owned(),
         });
+    }
+    if data.len() == 0 {
+        data = "/error".to_string();
     }
     Ok(data)
 }

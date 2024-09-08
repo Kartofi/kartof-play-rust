@@ -16,7 +16,7 @@ pub fn get(url: &str) -> Option<String> {
 }
 pub fn get_stream(url: &str) -> Option<impl Read> {
     match reqwest::blocking::get(url) {
-        Ok(mut response) => {
+        Ok(response) => {
             if response.status().is_success() {
                 Some(response)
             } else {

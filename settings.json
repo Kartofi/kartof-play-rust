@@ -15,7 +15,7 @@
     "secs": 604800,
     "nanos": 0
   },
-  "CACHE_ALL_IMAGES_FREQUENCY":{
+  "CACHE_ALL_IMAGES_FREQUENCY": {
     "secs": 259200,
     "nanos": 0
   },

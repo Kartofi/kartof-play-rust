@@ -11,6 +11,7 @@ use crate::utils::http;
 use crate::utils::images;
 use crate::utils::mongodb::Database;
 use crate::utils::types::*;
+use crate::SETTINGS;
 
 use choki::structs::ContentType;
 use chrono::DurationRound;
@@ -298,7 +299,11 @@ impl Database {
         }
         let details_clone = details.clone();
 
-        let pool = ThreadPool::new(episodes.len() + 1);
+        let mut threads = episodes.len() + 1;
+        if threads > SETTINGS.UPDATE_ALL_ANIME_THREADS {
+            threads = SETTINGS.UPDATE_ALL_ANIME_THREADS;
+        }
+        let pool = ThreadPool::new(threads);
 
         let episodes_mt = Arc::from(Mutex::from(episodes));
         let end_iter_eps = if pool.max_count() <= 2 { 1 } else { pool.max_count() - 2 };
@@ -354,8 +359,11 @@ impl Database {
             if missing_eps < ep_list_animegg.len() {
                 ep_list_animegg.splice(0..ep_list_animegg.len() - missing_eps, std::iter::empty());
             }
-
-            let pool = ThreadPool::new(missing_eps);
+            let mut threads = missing_eps;
+            if threads > SETTINGS.UPDATE_ALL_ANIME_THREADS {
+                threads = SETTINGS.UPDATE_ALL_ANIME_THREADS;
+            }
+            let pool = ThreadPool::new(threads);
 
             let episodes_new_mt: Arc<Mutex<Vec<Episode>>> = Arc::new(Mutex::new(Vec::new()));
             if ep_list_gogo.len() >= ep_list_animegg.len() {
@@ -459,12 +467,10 @@ fn compare(a: &str, b: &str) -> Ordering {
 }
 
 fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
-    let mut episodes_gogo = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
+    let episodes_gogo = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
 
-    let mut thread_count = episodes_gogo.len();
-    if thread_count == 0 {
-        thread_count = 1;
-    }
+    let thread_count = SETTINGS.UPDATE_ALL_ANIME_THREADS;
+
     let pool = ThreadPool::new(thread_count);
 
     episodes
@@ -500,12 +506,10 @@ fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
 }
 
 fn cache_episodes_animegg(id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
-    let mut episodes_animegg = scrapers::animegg::anime_details::get_episodes(&id);
+    let episodes_animegg = scrapers::animegg::anime_details::get_episodes(&id);
 
-    let mut thread_count = episodes_animegg.len();
-    if thread_count == 0 {
-        thread_count = 1;
-    }
+    let thread_count = SETTINGS.UPDATE_ALL_ANIME_THREADS;
+
     let pool = ThreadPool::new(thread_count);
 
     episodes

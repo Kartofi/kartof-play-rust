@@ -16,13 +16,13 @@ pub struct Settings {
 
     pub UPDATE_ALL_ANIME_THREADS: usize,
 
-    pub CACHE_COUNTDOWN: i64, // 5 MINS
+    pub CACHE_COUNTDOWN: i64,
 
-    pub CACHE_HOME_FREQUENCY_NUM: i64, // 5 MINS
-    pub CACHE_HOME_FREQUENCY: Duration, // 5 MINS
+    pub CACHE_HOME_FREQUENCY_NUM: i64,
+    pub CACHE_HOME_FREQUENCY: Duration,
 
-    pub CACHE_ALL_ANIME_FREQUENCY: Duration, // 7 Days
-    pub CACHE_ALL_IMAGES_FREQUENCY: Duration, // 7 Days
+    pub CACHE_ALL_ANIME_FREQUENCY: Duration,
+    pub CACHE_ALL_IMAGES_FREQUENCY: Duration,
 
     pub HTTP_REQUEST_TIMEOUT: Duration,
     pub HTTP_FREQUENCY_TIMEOUT: Duration,
