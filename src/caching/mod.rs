@@ -1,4 +1,4 @@
-use std::{ rc::Rc, sync::Arc, thread, time::Duration };
+use std::{rc::Rc, sync::Arc, thread, time::Duration};
 
 use chrono::Utc;
 use threadpool::ThreadPool;
@@ -7,10 +7,9 @@ use crate::{
     scrapers,
     utils::{
         caching_info::CachingInfo,
-        get_date_string,
-        get_timestamp,
+        get_date_string, get_timestamp,
         mongodb::Database,
-        types::{ AnimeRelease, Home, IdType },
+        types::{AnimeRelease, Home, IdType},
     },
     SETTINGS,
 };
@@ -35,25 +34,22 @@ pub fn start(database: Database) {
     update_all_animes_task(database_clone);
 
     println!(
-        "Statring all images caching task. Every {} days.",
+        "Starting all images caching task. Every {} days.",
         SETTINGS.CACHE_ALL_IMAGES_FREQUENCY.as_secs() / (24 * 60 * 60)
     );
     cache_all_images_task(database_clone2);
 }
 fn cache_all_images_task(database: Database) {
-    thread::spawn(move || {
-        loop {
-            if
-                get_timestamp() - CachingInfo::get_all_images_time() >=
-                (SETTINGS.CACHE_ALL_IMAGES_FREQUENCY.as_secs() as i64)
-            {
-                CachingInfo::update_time();
-                println!("Started caching all images!");
-                database.cache_all_images().unwrap();
-                println!("Done caching all images!");
-            }
-            thread::sleep(Duration::from_secs(100));
+    thread::spawn(move || loop {
+        if get_timestamp() - CachingInfo::get_all_images_time()
+            >= (SETTINGS.CACHE_ALL_IMAGES_FREQUENCY.as_secs() as i64)
+        {
+            CachingInfo::update_time();
+            println!("Started caching all images!");
+            database.cache_all_images().unwrap();
+            println!("Done caching all images!");
         }
+        thread::sleep(Duration::from_secs(100));
     });
 }
 fn update_all_animes_task(database: Database) {
@@ -61,9 +57,8 @@ fn update_all_animes_task(database: Database) {
         let arc = Arc::from(database);
 
         loop {
-            if
-                get_timestamp() - CachingInfo::get_all_anime_time() >=
-                (SETTINGS.CACHE_ALL_ANIME_FREQUENCY.as_secs() as i64)
+            if get_timestamp() - CachingInfo::get_all_anime_time()
+                >= (SETTINGS.CACHE_ALL_ANIME_FREQUENCY.as_secs() as i64)
             {
                 CachingInfo::update_time();
                 update_all_animes(&arc);
@@ -80,7 +75,8 @@ fn cache_home_task(database: Database) {
         let mut last_updated = arc
             .get_home(&get_date_string())
             .unwrap_or(None)
-            .unwrap_or(Home::new()).last_updated;
+            .unwrap_or(Home::new())
+            .last_updated;
 
         loop {
             if get_timestamp() - last_updated >= SETTINGS.CACHE_HOME_FREQUENCY_NUM {

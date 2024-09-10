@@ -1,8 +1,8 @@
 extern crate urlencoding;
 
-use std::path::{ Path, PathBuf };
-use std::time::{ Duration, Instant };
-use std::{ env, fs, thread };
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
+use std::{env, fs, thread};
 
 use dojang::Dojang;
 use dotenv::dotenv;
@@ -12,13 +12,13 @@ use choki::*;
 use mongodb::Database;
 use reqwest;
 use routes::get_routes;
-use scrapers::{ anime_schedule, gogoanime };
+use scrapers::{anime_schedule, gogoanime};
 use serde_json::json;
 use threadpool::ThreadPool;
-use utils::caching_info::CachingInfo;
+use utils::caching_info::{self, CachingInfo};
 use utils::settings::Settings;
-use utils::types::{ Anime, IdType };
-use utils::{ http, images };
+use utils::types::{Anime, IdType};
+use utils::{http, images};
 
 mod caching;
 mod routes;
@@ -37,6 +37,8 @@ fn main() {
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
     images::setup(); // Setup things for image host
+
+    caching_info::CachingInfo::init();
 
     let database = utils::mongodb::Database::new().unwrap();
 
