@@ -1,17 +1,17 @@
 use std::thread;
 
 use mongodb::{
-    bson::{ self, doc, Regex },
-    options::{ FindOptions, IndexOptions },
-    sync::{ Client, Collection, Cursor },
+    bson::{self, doc, Regex},
+    options::{FindOptions, IndexOptions},
+    sync::{Client, Collection, Cursor},
     IndexModel,
 };
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use threadpool::ThreadPool;
 
 use crate::SETTINGS;
 
-use super::{ get_timestamp, http, images, types::* };
+use super::{get_timestamp, http, images, types::*};
 #[derive(Debug, Clone)]
 pub struct Database {
     client: Client,
@@ -28,7 +28,7 @@ impl Database {
     pub fn update_home(
         &self,
         mut data: Home,
-        search: Option<Home>
+        search: Option<Home>,
     ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 
@@ -83,48 +83,64 @@ impl Database {
         &self,
         title: &str,
         max_results: usize,
-        page: usize
+        page: usize,
     ) -> mongodb::error::Result<Vec<Anime>> {
         let database = self.client.database("Kartof-Play");
-
         let col: Collection<Anime> = database.collection("Animes");
 
-        let title = &title.replace("+", " ");
+        let cleaned_title = title.replace("+", " ");
 
-        let filter =
-            doc! {
-            "$text": {
-                "$search": title,
-                "$caseSensitive": false
+        let exact_filter = doc! {
+            "title": {
+                "$regex": cleaned_title.clone(),
+                "$options": "i"
             }
         };
 
-        let sort = doc! {
-            "score": { "$meta": "textScore" }
+        let text_filter = doc! {
+            "$text": { "$search": cleaned_title, "$caseSensitive": false }
         };
+
+        let sort = doc! { "score": { "$meta": "textScore" } };
         let skip = max_results * page;
-        let options = FindOptions::builder()
+
+        let text_options = FindOptions::builder()
             .sort(sort)
             .skip(skip as u64)
             .limit(max_results as i64)
             .projection(doc! { "score": { "$meta": "textScore" } })
             .build();
 
-        let cursor = col.find(filter, options)?;
-
         let mut results: Vec<Anime> = Vec::new();
 
-        for result in cursor {
+        let exact_cursor = col.find(exact_filter, None)?;
+        for result in exact_cursor {
             match result {
                 Ok(anime) => {
                     results.push(anime);
                     if results.len() >= max_results {
+                        return Ok(results); // Return early if exact matches fill the results
+                    }
+                }
+                Err(e) => eprintln!("Error in exact match search: {:?}", e),
+            }
+        }
+
+        let text_cursor = col.find(text_filter, text_options)?;
+        for result in text_cursor {
+            match result {
+                Ok(anime) => {
+                    if !results.iter().any(|r| r.title == anime.title) {
+                        results.push(anime);
+                    }
+                    if results.len() >= max_results {
                         break;
                     }
                 }
-                Err(e) => eprintln!("Error: {:?}", e),
+                Err(e) => eprintln!("Error in text search: {:?}", e),
             }
         }
+
         Ok(results)
     }
     pub fn get_anime_id(&self, id: &str, id_type: &IdType, is_dub: bool) -> Option<Anime> {
@@ -186,7 +202,7 @@ impl Database {
         episodes: Option<Vec<Episode>>,
         animegg_id: Option<&str>,
         mal_id: Option<&str>,
-        schedule_id: Option<&str>
+        schedule_id: Option<&str>,
     ) -> mongodb::error::Result<CacheResult> {
         let database = self.client.database("Kartof-Play");
 

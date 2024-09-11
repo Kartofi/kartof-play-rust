@@ -15,21 +15,30 @@ use crate::{
 
 use super::RouteData;
 
-pub static PATH: &str = "/search";
+pub static PATH: &str = "/watch/[id]";
 
 pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>) {
     let mut dojang = Dojang::new();
     assert!(dojang.load("./ui").is_ok());
 
     let db = database.unwrap();
-    println!("{:?}", req.query);
-    let mut ress = db
-        .search_anime(req.query.get("q").unwrap(), 10, 1)
-        .unwrap_or_default();
 
-    let json = json!({ "data": ress});
+    let anime = db.get_anime_id(req.params.get("id").unwrap(), &IdType::KartofPlay, false);
 
-    let data = dojang.render("search.html", json).unwrap();
+    if anime.is_none() {
+        res.send_code(404);
+        return;
+    }
+    let mut anime = anime.unwrap();
+    anime.gogo_id = "".to_string();
+    anime.animegg_id = "".to_string();
+    anime.schedule_id = "".to_string();
+    anime.details.movie_id = None;
+    anime.details.id = None;
+
+    let json = serde_json::to_value(anime).unwrap_or_default();
+
+    let data = dojang.render("watch.html", json).unwrap();
 
     res.set_header(&Header::new(
         "Access-Control-Allow-Origin".to_string(),

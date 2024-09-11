@@ -1,11 +1,12 @@
 use choki::structs::*;
 
-use crate::utils::{ self };
+use crate::utils::{self};
 
 pub mod home;
 pub mod images;
 pub mod player;
 pub mod search;
+pub mod watch;
 
 pub type RouteData = (
     String,
@@ -18,5 +19,6 @@ pub fn get_routes() -> Vec<RouteData> {
     result.push(home::get_route());
     result.push(images::get_route());
     result.push(search::get_route());
+    result.push(watch::get_route());
     return result;
 }
