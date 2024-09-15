@@ -11,7 +11,7 @@ build = "build.rs"
 
 choki = "1.0.11"
 reqwest = { version = "=0.12.4", features = ["blocking"] }
-dojang = "0.1.6"
+handlebars = "6.1.0"
 visdom = "1.0.1"
 serde = "1.0.203"
 serde_json = "1.0.125"

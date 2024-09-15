@@ -1,5 +1,4 @@
 use choki::structs::*;
-use dojang::Dojang;
 use serde_json::json;
 
 use crate::{
@@ -8,6 +7,7 @@ use crate::{
         self,
         types::{Anime, IdType},
     },
+    HANDLEBARS,
 };
 
 use super::RouteData;
@@ -15,9 +15,6 @@ use super::RouteData;
 pub static PATH: &str = "/player/[id]/[ep_num]";
 
 pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>) {
-    let mut dojang = Dojang::new();
-    assert!(dojang.load("./ui").is_ok());
-
     let id = req.params.get("id").unwrap();
     let ep_num = req.params.get("ep_num").unwrap();
 
@@ -31,7 +28,7 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
     )
     .unwrap_or_default();
 
-    let data = dojang.render("player.html", json!({"url": url})).unwrap();
+    let data = HANDLEBARS.render("player", &json!({"url": url})).unwrap();
     res.set_header(&Header::new(
         "Access-Control-Allow-Origin".to_string(),
         "*".to_string(),

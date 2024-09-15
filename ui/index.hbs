@@ -1,0 +1,33 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    {{#each schedule}}
+      <a>{{this.title}}</a>
+      <br />
+      <a>{{this.episode_num}}</a>
+      <br />
+      <img src="{{this.cover_url}}" />
+      <br />
+      <a>{{this.is_out}}</a>
+      <br />
+    {{/each}}
+
+    <br />
+    Recent
+    <br />
+    {{#each recent}}
+      <a>{{this.title}}</a>
+      <br />
+      <a>{{this.episode_num}}</a>
+      <br />
+      <img src="{{this.cover_url}}" />
+      <br />
+      <a>{{this.is_out}}</a>
+      <br />
+    {{/each}}
+  </body>
+</html>

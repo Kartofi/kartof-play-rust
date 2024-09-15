@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use choki::structs::*;
-use dojang::Dojang;
+
 use mongodb::bson;
 use serde_json::{json, Value};
 
@@ -11,6 +11,7 @@ use crate::{
         self,
         types::{Anime, IdType},
     },
+    HANDLEBARS,
 };
 
 use super::RouteData;
@@ -18,9 +19,6 @@ use super::RouteData;
 pub static PATH: &str = "/search";
 
 pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb::Database>) {
-    let mut dojang = Dojang::new();
-    assert!(dojang.load("./ui").is_ok());
-
     let db = database.unwrap();
     println!("{:?}", req.query);
     let mut ress = db
@@ -29,7 +27,7 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
 
     let json = json!({ "data": ress});
 
-    let data = dojang.render("search.html", json).unwrap();
+    let data = HANDLEBARS.render("search", &json).unwrap();
 
     res.set_header(&Header::new(
         "Access-Control-Allow-Origin".to_string(),

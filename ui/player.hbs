@@ -1,0 +1,46 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kartof Play | Player</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <link
+      href="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css"
+      rel="stylesheet"
+    />
+  </head>
+  <style>
+    #player { width: 100vw; height: 100vh; } body { margin: 0px; } /*.video-js
+    .vjs-control-bar { background-color: rgba(85, 33, 134, 0.699); }
+    .vjs-menu-button-popup .vjs-menu { background-color: rgba(85, 33, 134,
+    0.699); border-top-color: rgba(85, 33, 134, 0.699); } */
+  </style>
+  <body>
+    <video-js
+      id="player"
+      class="video-js vjs-forest"
+      controls
+      preload="auto"
+      width="640"
+      height="264"
+    ></video-js>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+
+    <script
+      src="https://unpkg.com/videojs-contrib-quality-levels@2.1.0/dist/videojs-contrib-quality-levels.js"
+    ></script>
+    <script
+      src="https://unpkg.com/videojs-http-source-selector@1.1.5/dist/videojs-http-source-selector.min.js"
+    ></script>
+
+    <script>
+      let url = "{{url}}";
+    </script>
+    <script src="/static/js/player.js"></script>
+  </body>
+</html>
