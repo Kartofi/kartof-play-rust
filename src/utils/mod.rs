@@ -1,4 +1,4 @@
-use chrono::{ Datelike, Utc };
+use chrono::{Datelike, Duration, TimeDelta, Utc};
 use rand::Rng;
 
 pub mod http;
@@ -6,8 +6,8 @@ pub mod images;
 pub mod mongodb;
 pub mod types;
 
-pub mod settings;
 pub mod caching_info;
+pub mod settings;
 
 pub fn get_timestamp() -> i64 {
     let current_timestamp = Utc::now();
@@ -22,11 +22,12 @@ pub fn get_date_string() -> String {
         current_timestamp.year()
     )
 }
-pub fn get_yesterday_date_string() -> String {
-    let current_timestamp = Utc::now();
+pub fn get_previous_date_string(ago: &i64) -> String {
+    let mut current_timestamp = Utc::now();
+    current_timestamp -= Duration::from(TimeDelta::days(*ago));
     format!(
         "{}:{}:{}",
-        current_timestamp.day() - 1,
+        current_timestamp.day(),
         current_timestamp.month(),
         current_timestamp.year()
     )

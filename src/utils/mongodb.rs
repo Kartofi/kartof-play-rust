@@ -280,4 +280,60 @@ impl Database {
         pool.join();
         Ok(CacheResult::new("Succesufully saved all images", false))
     }
+
+    pub fn get_gogo_stream(
+        &self,
+        id: &str,
+        ep: usize,
+    ) -> mongodb::error::Result<Option<StreamUrlEpisode>> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<StreamUrl> = database.collection("StreamUrls");
+        let result = col.find(doc! {"id": id}, None).unwrap();
+
+        for res in result {
+            if res.is_ok() {
+                let found = res.unwrap();
+                let ep_url = found.get_ep_url(ep);
+                return Ok(found.get_ep_url(ep));
+            }
+        }
+        Ok(None)
+    }
+    pub fn set_gogo_stream(
+        &self,
+        id: &str,
+        ep: usize,
+        url: String,
+        ep_count: usize,
+    ) -> mongodb::error::Result<bool> {
+        let database = self.client.database("Kartof-Play");
+
+        let col: Collection<StreamUrl> = database.collection("StreamUrls");
+
+        let filter = doc! {"id": id};
+
+        let result = col.find(filter.clone(), None).unwrap();
+
+        let mut ep_index = ep - 1;
+        if ep_index < 0 {
+            ep_index = 0;
+        }
+
+        if result.count() > 0 {
+            col.update_one(
+                filter,
+                doc! {"$set": {format!("episodes.{}.url",ep_index): url}},
+                None,
+            )
+            .unwrap();
+        } else {
+            let episode = StreamUrlEpisode::new(&url);
+            let mut stream_url = StreamUrl::new_ep_count(id, ep_count);
+            stream_url.episodes[ep_index] = episode;
+
+            col.insert_one(stream_url, None).unwrap();
+        }
+        Ok(true)
+    }
 }

@@ -22,11 +22,17 @@ pub fn get(mut req: Request, mut res: Response, database: Option<utils::mongodb:
 
     let mut home = db.get_home(&utils::get_date_string()).unwrap_or_default();
 
-    if home.is_none() {
+    let mut days_ago: i64 = 1;
+    while home.is_none() {
         home = db
-            .get_home(&utils::get_yesterday_date_string())
+            .get_home(&&utils::get_previous_date_string(&days_ago))
             .unwrap_or_default();
+        if days_ago >= 30 {
+            break;
+        }
+        days_ago += 1;
     }
+
     if home.is_none() {
         res.send_code(404);
     }

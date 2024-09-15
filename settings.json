@@ -4,7 +4,7 @@
   "MALURL": "https://myanimelist.net/",
   "GOGOANIMEURL": "https://gogoanime3.co/",
   "GOGOANIMEURL_AJAX": "https://ajax.gogocdn.net/ajax/",
-  "UPDATE_ALL_ANIME_THREADS": 100,
+  "UPDATE_ALL_ANIME_THREADS": 25,
   "CACHE_COUNTDOWN": 300,
   "CACHE_HOME_FREQUENCY_NUM": 300,
   "CACHE_HOME_FREQUENCY": {
@@ -32,5 +32,6 @@
     "secs": 0,
     "nanos": 100000000
   },
-  "REPORT_COUNT": 100
+  "REPORT_COUNT": 100,
+  "EPISODE_URL_EXPIRE": 2592000
 }

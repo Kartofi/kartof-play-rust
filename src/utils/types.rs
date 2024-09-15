@@ -1,4 +1,10 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
+
+use crate::SETTINGS;
+
+use super::get_timestamp;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Home {
@@ -164,5 +170,52 @@ impl Image {
             id: id.to_string(),
             data: data,
         }
+    }
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StreamUrl {
+    pub id: String,
+    pub episodes: Vec<StreamUrlEpisode>,
+}
+impl StreamUrl {
+    pub fn new(id: &str, episodes: Vec<StreamUrlEpisode>) -> StreamUrl {
+        StreamUrl {
+            id: id.to_string(),
+            episodes: episodes,
+        }
+    }
+    pub fn new_ep_count(id: &str, count: usize) -> StreamUrl {
+        let mut episodes: Vec<StreamUrlEpisode> = Vec::new();
+        for i in 0..count {
+            episodes.push(StreamUrlEpisode::new(""));
+        }
+        StreamUrl {
+            id: id.to_string(),
+            episodes: episodes,
+        }
+    }
+    pub fn get_ep_url(&self, ep: usize) -> Option<StreamUrlEpisode> {
+        if ep >= self.episodes.len() {
+            return None;
+        } else {
+            return Some(self.episodes[ep - 1].clone());
+        }
+    }
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StreamUrlEpisode {
+    pub url: String,
+    pub last_updated: u64,
+}
+
+impl StreamUrlEpisode {
+    pub fn new(url: &str) -> StreamUrlEpisode {
+        StreamUrlEpisode {
+            url: url.to_string(),
+            last_updated: get_timestamp() as u64,
+        }
+    }
+    pub fn is_expired(&self) -> bool {
+        return get_timestamp() as u64 - self.last_updated >= SETTINGS.EPISODE_URL_EXPIRE;
     }
 }

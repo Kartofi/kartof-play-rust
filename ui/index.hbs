@@ -2,19 +2,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Home | Kartof Play</title>
+    <link rel="icon" href="/static/images/kartof-play.png" />
+    <link rel="stylesheet" href="/static/css/index.css" />
+    <link rel="stylesheet" href="/static/css/common.css" />
   </head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet"
+  />
   <body>
-    {{#each schedule}}
-      <a>{{this.title}}</a>
-      <br />
-      <a>{{this.episode_num}}</a>
-      <br />
-      <img src="{{this.cover_url}}" />
-      <br />
-      <a>{{this.is_out}}</a>
-      <br />
-    {{/each}}
+    <div class="anime-list">
+      {{#each schedule}}
+        <div class="anime">
+          <a>{{this.title}}</a>
+          <br />
+          <a>{{this.episode_num}}</a>
+          <br />
+          <center>
+            <img src="{{this.cover_url}}" />
+          </center>
+          <br />
+          <a>{{this.is_out}}</a>
+          <br />
+
+          <a id="release_time">{{this.release_time}}</a>
+        </div>
+
+      {{/each}}
+    </div>
 
     <br />
     Recent
@@ -30,4 +48,5 @@
       <br />
     {{/each}}
   </body>
+  <script src="/static/js/index.js"></script>
 </html>

@@ -1,6 +1,6 @@
-use std::{ fs, path::Path, time::Duration };
+use std::{fs, path::Path, time::Duration};
 
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Settings {
@@ -30,6 +30,8 @@ pub struct Settings {
     pub IMAGES_PATH: String,
     pub CACHE_SLEEP: Duration,
     pub REPORT_COUNT: usize,
+
+    pub EPISODE_URL_EXPIRE: u64,
 }
 
 impl Settings {
@@ -45,11 +47,11 @@ impl Settings {
 
             CACHE_COUNTDOWN: 300, // 5 MINS
 
-            CACHE_HOME_FREQUENCY_NUM: 300, // 5 MINS
+            CACHE_HOME_FREQUENCY_NUM: 300,                  // 5 MINS
             CACHE_HOME_FREQUENCY: Duration::from_secs(300), // 5 MINS
 
-            CACHE_ALL_ANIME_FREQUENCY: Duration::from_secs(604800), // 7 Days
-            CACHE_ALL_IMAGES_FREQUENCY: Duration::from_secs(259200), // 3 Days
+            CACHE_ALL_ANIME_FREQUENCY: Duration::from_secs(604_800), // 7 Days
+            CACHE_ALL_IMAGES_FREQUENCY: Duration::from_secs(259_200), // 3 Days
 
             HTTP_REQUEST_TIMEOUT: Duration::from_secs(4),
             HTTP_FREQUENCY_TIMEOUT: Duration::from_secs(2),
@@ -57,6 +59,8 @@ impl Settings {
             IMAGES_PATH: "./images".to_string(),
             CACHE_SLEEP: Duration::from_millis(100),
             REPORT_COUNT: 100,
+
+            EPISODE_URL_EXPIRE: 2_592_000, // 30 Days
         }
     }
     pub fn from_file(path: &str) -> Settings {
