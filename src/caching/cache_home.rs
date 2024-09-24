@@ -83,12 +83,12 @@ impl Database {
             let anime_data = anime_data_res.unwrap();
 
             result.push(AnimeRelease {
-                id: Some(anime_data.id),
+                id: Some(anime_data.id.clone()),
                 title: Some(anime_data.title),
                 episode_num: anime.episode_num,
                 is_sub: anime.is_sub,
                 is_out: true,
-                cover_url: anime_data.details.cover_url,
+                cover_url: format!("/images/{}", anime_data.id),
                 release_time: anime.release_time,
             });
         }
@@ -144,7 +144,7 @@ impl Database {
 
         for anime in schedule {
             let id = &anime.id.unwrap_or_default();
-            let anime_data_res = self.get_anime_id(id, &IdType::AnimeSchedule, id.contains("dub"));
+            let anime_data_res = self.get_anime_id(id, &IdType::AnimeSchedule, !anime.is_sub);
             if anime_data_res.is_none() == true {
                 continue;
             }

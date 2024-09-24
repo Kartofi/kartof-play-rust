@@ -17,7 +17,7 @@
     <div class="anime-list">
       {{#each schedule}}
         <div class="anime">
-          <a>{{this.title}}</a>
+          <a href="/watch/{{this.id}}">{{this.title}}</a>
           <br />
           <a>{{this.episode_num}}</a>
           <br />
@@ -38,6 +38,20 @@
     Recent
     <br />
     {{#each recent}}
+      <a>{{this.title}}</a>
+      <br />
+      <a>{{this.episode_num}}</a>
+      <br />
+      <img src="{{this.cover_url}}" />
+      <br />
+      <a>{{this.is_out}}</a>
+      <br />
+    {{/each}}
+
+     <br />
+    Popular
+    <br />
+    {{#each popular}}
       <a>{{this.title}}</a>
       <br />
       <a>{{this.episode_num}}</a>

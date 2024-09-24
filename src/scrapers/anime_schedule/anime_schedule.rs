@@ -86,7 +86,8 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             let mut release_data = AnimeRelease::new();
                             release_data.is_out = out;
                             release_data.cover_url = image;
-                            release_data.episode_num = Some(episode.replace("Ep ", ""));
+                            release_data.episode_num =
+                                Some(episode.replace("Ep ", "").replace("F", ""));
                             release_data.id = Some(id);
                             release_data.title = Some(title);
                             release_data.release_time = Some(datetime_in_target_tz.timestamp());
@@ -108,5 +109,6 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
             reason: "Failed to make http request".to_owned(),
         });
     }
+    data.sort_by(|a, b| a.release_time.cmp(&b.release_time));
     Ok(data)
 }
