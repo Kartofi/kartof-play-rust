@@ -80,6 +80,9 @@ impl Database {
                 }
                 continue;
             }
+
+            self.cache_anime(id, recent_type).unwrap();
+
             let anime_data = anime_data_res.unwrap();
 
             result.push(AnimeRelease {
