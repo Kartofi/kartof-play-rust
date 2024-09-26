@@ -284,6 +284,12 @@ impl Database {
         if gogoanime_details_res.is_ok() {
             let details_gogo = gogoanime_details_res.unwrap();
             details.episodes = details_gogo.episodes;
+        } else {
+            let animegg_details_res = scrapers::gogoanime::anime_details::get(&current.animegg_id);
+            if animegg_details_res.is_ok() {
+                let details_animegg = animegg_details_res.unwrap();
+                details.episodes = details_animegg.episodes;
+            }
         }
         let details_clone = details.clone();
 

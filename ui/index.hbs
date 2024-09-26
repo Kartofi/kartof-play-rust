@@ -17,13 +17,15 @@
     <div class="anime-list">
       {{#each schedule}}
         <div class="anime">
-          <a href="/watch/{{this.id}}">{{this.title}}</a>
-          <br />
-          <a>{{this.episode_num}}</a>
-          <br />
+
           <center>
             <img src="{{this.cover_url}}" />
           </center>
+
+          <a id="anime-title" href="/watch/{{this.id}}">{{this.title}}</a>
+          <br />
+          <a>{{this.episode_num}}</a>
+          <br />
           <br />
           <a>{{this.is_out}}</a>
           <br />
@@ -48,7 +50,7 @@
       <br />
     {{/each}}
 
-     <br />
+    <br />
     Popular
     <br />
     {{#each popular}}
@@ -63,4 +65,5 @@
     {{/each}}
   </body>
   <script src="/static/js/index.js"></script>
+  <script src="/static/js/common.js"></script>
 </html>

@@ -25,11 +25,17 @@ body {
 }
 .anime {
   background-color: var(--anime-card-color);
-  border: 5px;
-  border-style: solid;
-  border-color: black;
 }
 .anime img {
   max-height: 342px;
-  max-width: 90%;
+  max-width: 94%;
+
+  margin: 5px;
+}
+.anime a:visited,
+a {
+  color: var(--text-color);
+  text-decoration: none;
+
+  text-wrap: balance;
 }
