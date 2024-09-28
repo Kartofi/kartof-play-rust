@@ -19,18 +19,22 @@
         <div class="anime">
 
           <center>
-            <img src="{{this.cover_url}}" />
+            <div class="thumbnail">
+              <img src="{{this.cover_url}}" />
+            </div>
+
           </center>
+          <div class="anime-info">
+            <a id="anime-title" href="/watch/{{this.id}}">{{this.title}}</a>
+            <br />
+            <a>{{this.episode_num}}</a>
+            <br />
+            <br />
+            <a>{{this.is_out}}</a>
+            <br />
 
-          <a id="anime-title" href="/watch/{{this.id}}">{{this.title}}</a>
-          <br />
-          <a>{{this.episode_num}}</a>
-          <br />
-          <br />
-          <a>{{this.is_out}}</a>
-          <br />
-
-          <a id="release_time">{{this.release_time}}</a>
+            <a id="release_time">{{this.release_time}}</a>
+          </div>
         </div>
 
       {{/each}}

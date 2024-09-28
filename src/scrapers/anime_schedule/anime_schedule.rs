@@ -91,7 +91,9 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             release_data.id = Some(id);
                             release_data.title = Some(title);
                             release_data.release_time = Some(datetime_in_target_tz.timestamp());
-                            release_data.is_sub = children.html().contains("SUB</span>");
+                            let children_html = children.html();
+                            release_data.is_sub = children_html.contains("SUB</span>")
+                                || children_html.contains("JPN</span>");
 
                             data.push(release_data);
                         }
