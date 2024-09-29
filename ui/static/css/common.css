@@ -16,47 +16,24 @@ body {
   grid-column-gap: 10px;
   margin: 5px;
 
-  aspect-ratio: 100 / 150;
+  height: fit-content;
 }
 
-/*  Desktop */
-@media screen and (min-width: 394px) {
-  .anime-list {
-    grid-template-rows: repeat(auto-fill, 394px);
-    grid-template-columns: repeat(auto-fill, minmax(180px, 0.5fr));
-  }
+.anime-list {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
 
-  .thumbnail {
-    height: 300px;
-  }
-}
-/*  Phone */
-@media screen and (max-width: 394px) {
-  .anime-list {
-    grid-template-rows: repeat(auto-fill, fit-content);
-    grid-template-columns: repeat(2, 0.5fr);
-  }
-  .thumbnail img {
-    max-width: 100%;
-  }
-  .thumbnail {
-    height: 210px;
-  }
-}
-@media screen and (max-width: 260px) {
-  .anime-list {
-    grid-template-rows: repeat(auto-fill, fit-content);
-    grid-template-columns: repeat(1, 1fr);
-  }
-  .thumbnail img {
-    max-width: 100%;
-  }
-  .thumbnail {
-    height: 300px;
-  }
+.thumbnail {
+  aspect-ratio: 100 / 130;
+
+  object-fit: contain;
+  width: 100%;
 }
 .anime {
   background-color: var(--anime-card-color);
+
+  object-fit: contain;
+  aspect-ratio: 100 / 130;
 }
 .anime-info {
   margin-top: 5px;
@@ -66,6 +43,7 @@ body {
 }
 .thumbnail {
   width: 100%;
+  object-fit: contain;
 }
 .thumbnail img {
   height: 100%;
