@@ -2,7 +2,12 @@ let player = document.getElementById("player");
 var spinner = document.getElementById("loading-spinner");
 
 let episode_cookie = getCookieEpisode();
-if (episode_cookie == undefined) {
+
+if (
+  episode_cookie == undefined ||
+  episode_cookie.length == 0 ||
+  Number(episode_cookie) == NaN
+) {
   episode_cookie = "1";
 
   setCookie("episode", "1", 30);
