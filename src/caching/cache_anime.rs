@@ -311,9 +311,9 @@ impl Database {
 
             let arc_clone = Arc::clone(&episodes_mt);
             pool.execute(move || {
-                let mut episodes_locked = arc_clone.lock().unwrap().to_vec();
+                let mut episodes_locked = arc_clone.lock().unwrap();
                 let episode_res = episodes_locked.get(i);
-                if episode_res.is_none() == false {
+                if episode_res.is_some() == true {
                     let mut episode = episode_res.unwrap().clone();
 
                     if episode.gogoanime_url.len() <= 6 {
@@ -322,6 +322,7 @@ impl Database {
                         );
 
                         let url = result.unwrap_or_default();
+
                         if url.len() > 6 {
                             episode.gogoanime_url = url;
                         }
@@ -578,6 +579,13 @@ fn remove_dubs_eps(episodes: &Arc<Mutex<Vec<Episode>>>) {
 }
 fn fill_gaps(episodes: &mut Vec<Episode>) {
     if episodes.is_empty() {
+        return;
+    }
+    if episodes[0].num == "0"
+        && episodes[0].gogoanime_url.len() == 0
+        && episodes[0].animegg_url.len() == 0
+    {
+        episodes.clear();
         return;
     }
 
