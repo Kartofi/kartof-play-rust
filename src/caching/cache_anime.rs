@@ -459,7 +459,9 @@ fn compare(a: &str, b: &str) -> Ordering {
 
 fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
     let episodes_gogo = scrapers::gogoanime::anime_details::get_episodes(&movie_id);
-
+    if episodes_gogo.len() == 0 {
+        return;
+    }
     let thread_count = SETTINGS.UPDATE_ALL_ANIME_THREADS;
 
     let pool = ThreadPool::new(thread_count);
@@ -500,7 +502,9 @@ fn cache_episodes_gogo(movie_id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
 
 fn cache_episodes_animegg(id: &str, episodes: &Arc<Mutex<Vec<Episode>>>) {
     let episodes_animegg = scrapers::animegg::anime_details::get_episodes(&id);
-
+    if episodes_animegg.len() == 0 {
+        return;
+    }
     let thread_count = SETTINGS.UPDATE_ALL_ANIME_THREADS;
 
     let pool = ThreadPool::new(thread_count);

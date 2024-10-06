@@ -54,6 +54,9 @@ pub fn get(id: &str) -> Result<AnimeDetails, ScraperError> {
     Ok(data)
 }
 pub fn get_episodes(id: &str) -> Vec<String> {
+    if id.len() == 0 {
+        return Vec::new();
+    }
     let mut ids: Vec<String> = Vec::new();
     let url = crate::SETTINGS.ANIMEGG.to_owned() + "series/" + id;
     let response = http::get(&url);

@@ -61,7 +61,9 @@ fn main() {
     caching_info::CachingInfo::init();
 
     let database = utils::mongodb::Database::new().unwrap();
-
+    database
+        .cache_anime("1722187244676", IdType::KartofPlay)
+        .unwrap();
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));
