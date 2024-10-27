@@ -54,6 +54,10 @@ fn handlebars() -> Handlebars<'static> {
     reg
 }
 fn main() {
+    println!(
+        "{:?}",
+        scrapers::anime_schedule::anime_schedule::get().unwrap()[0]
+    );
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
     images::setup(); // Setup things for image host
@@ -61,9 +65,7 @@ fn main() {
     caching_info::CachingInfo::init();
 
     let database = utils::mongodb::Database::new().unwrap();
-    database
-        .cache_anime("1722187244676", IdType::KartofPlay)
-        .unwrap();
+
     caching::start(database.clone());
 
     let mut server = Server::new(Some(1024), Some(database));

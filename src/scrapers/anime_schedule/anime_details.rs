@@ -9,7 +9,7 @@ use visdom::types::BoxDynError;
 use visdom::types::Elements;
 use visdom::Vis;
 
-use chrono::{ DateTime, TimeZone, Utc };
+use chrono::{DateTime, TimeZone, Utc};
 
 pub fn get(id: &str, is_dub: bool) -> Result<AnimeDetails, ScraperError> {
     let mut data: AnimeDetails = AnimeDetails::new();
@@ -19,16 +19,20 @@ pub fn get(id: &str, is_dub: bool) -> Result<AnimeDetails, ScraperError> {
     if response.is_none() == false {
         match Vis::load(response.unwrap()) {
             Ok(root) => {
-                let selector =
-                    "time[id='release-time-".to_string() +
-                    (if is_dub == true { "dub']" } else { "sub']" });
+                let selector = "time[id='release-time-".to_string()
+                    + (if is_dub == true { "dub']" } else { "sub']" });
                 let time_res = root.find(&selector).attr("datetime");
                 let mut timestamp: i64 = 0;
 
                 if time_res.is_none() == false {
                     let datetime: DateTime<FixedOffset> = DateTime::parse_from_rfc3339(
-                        &time_res.unwrap().to_string().replace("&#43;", ":00+")
-                    ).unwrap();
+                        &time_res
+                            .unwrap()
+                            .to_string()
+                            .replace("&#43;", ":00+")
+                            .replace("Z", ":00+00:00"),
+                    )
+                    .unwrap();
 
                     let timezone_text = root.find("div.release-time-timezone-text").text();
                     let desired_timezone = timezone_text
@@ -39,8 +43,7 @@ pub fn get(id: &str, is_dub: bool) -> Result<AnimeDetails, ScraperError> {
                         .replace("(", "")
                         .replace(")", "");
 
-                    let target_timezone: Tz = scrapers::timezones
-                        ::get_timezone(&desired_timezone)
+                    let target_timezone: Tz = scrapers::timezones::get_timezone(&desired_timezone)
                         .expect("Timezone not in index")
                         .parse()
                         .expect("Invalid timezone name");

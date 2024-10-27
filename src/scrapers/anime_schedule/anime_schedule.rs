@@ -41,7 +41,9 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                                 .attr("datetime")
                                 .unwrap()
                                 .to_string()
-                                .replace("&#43;", ":00+");
+                                .replace("&#43;", ":00+")
+                                .replace("Z", ":00+00:00");
+
                             let isPM = time_bar.find("time.show-air-time").text().contains("PM");
 
                             let show = children.find("a.show-link");
@@ -61,7 +63,6 @@ pub fn get() -> Result<Vec<AnimeRelease>, ScraperError> {
                             let now = Utc::now();
                             let release_time =
                                 DateTime::parse_from_rfc3339(&time).unwrap_or_default();
-
                             let desired_timezone = timezone
                                 .split(" ")
                                 .last()

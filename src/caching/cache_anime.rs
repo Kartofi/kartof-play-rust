@@ -302,6 +302,7 @@ impl Database {
         let episodes_mt = Arc::from(Mutex::from(episodes));
 
         fill_gaps(&mut episodes_mt.lock().unwrap());
+
         remove_dubs_eps(&episodes_mt);
 
         let end_iter_eps = if threads - 1 <= 1 { 1 } else { threads - 1 };
@@ -437,6 +438,7 @@ impl Database {
         //Updating data on database
         let mut eps = episodes_mt.lock().unwrap().to_vec();
         eps.sort_by(|a, b| compare(&a.num, &b.num));
+
         return self.update_anime(
             &current.id,
             Some(details_clone),
