@@ -293,7 +293,8 @@ impl Database {
         }
         let details_clone = details.clone();
 
-        let mut threads = episodes.len() + 1;
+        let eps_count = episodes.len();
+        let mut threads = eps_count.clone() + 1;
         if threads > SETTINGS.UPDATE_ALL_ANIME_THREADS {
             threads = SETTINGS.UPDATE_ALL_ANIME_THREADS;
         }
@@ -305,7 +306,7 @@ impl Database {
 
         remove_dubs_eps(&episodes_mt);
 
-        let end_iter_eps = if threads - 1 <= 1 { 1 } else { threads - 1 };
+        let end_iter_eps = if eps_count <= 1 { 1 } else { eps_count - 1 };
         for i in 0..end_iter_eps {
             let gogo_id = current.gogo_id.to_owned();
             let animegg_id = current.animegg_id.clone();

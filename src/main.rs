@@ -54,10 +54,6 @@ fn handlebars() -> Handlebars<'static> {
     reg
 }
 fn main() {
-    println!(
-        "{:?}",
-        scrapers::anime_schedule::anime_schedule::get().unwrap()[0]
-    );
     dotenv().ok(); // Load ENV
     node_js::start(); // Setup node.js stuff
     images::setup(); // Setup things for image host

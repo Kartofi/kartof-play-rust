@@ -153,6 +153,8 @@ impl Database {
             }
             let anime_data = anime_data_res.unwrap();
 
+            self.cache_anime(id, IdType::AnimeSchedule).unwrap();
+
             result.push(AnimeRelease {
                 id: Some(anime_data.id.clone()),
                 title: Some(anime_data.title),
