@@ -13,6 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@consumet/extensions": "^1.8.0"
+    "@consumet/extensions": "^1.8.1"
   }
 }

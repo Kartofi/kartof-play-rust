@@ -7,7 +7,6 @@ pub mod images;
 pub mod player;
 pub mod search;
 pub mod watch;
-
 pub type RouteData = (
     String,
     fn(req: Request, res: Response, database: Option<utils::mongodb::Database>),
